@@ -18,7 +18,6 @@ export const sanitizeSensitiveFields = (req, res, next) => {
       "aiUsageCount",
       "resetPasswordToken",
       "resetPasswordExpire",
-      "isAdmin",
     ];
 
     FORBIDDEN_FIELDS.forEach((field) => {
