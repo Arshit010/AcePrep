@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import api from "../services/api";
-import Loader from "../components/Loader";
+import { VideoInterviewSkeleton } from "../components/Skeletons";
 
 function selectDefaultVoice(voices = []) {
   return (
@@ -35,6 +34,7 @@ export default function VideoInterview() {
 
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [micReady, setMicReady] = useState(false);
@@ -213,7 +213,7 @@ export default function VideoInterview() {
         setFeedbackHighlights([]);
       } catch (error) {
         console.error(error);
-        navigate("/dashboard", { replace: true });
+        setFetchError(error?.response?.data?.message || "Failed to load video interview session");
       } finally {
         setLoading(false);
       }
@@ -930,13 +930,26 @@ export default function VideoInterview() {
   };
 
   if (loading) {
+    return <VideoInterviewSkeleton />;
+  }
+
+  if (fetchError) {
     return (
-      <Loader
-        variant="video"
-        badge="AI Interview Agent"
-        title="Preparing your interview room..."
-        subtitle="Configuring voice, integrity monitoring, camera checks, and question flow."
-      />
+      <div className="video-interview-shell">
+        <div className="active-question-card" style={{ textAlign: "center", padding: "3rem 1.5rem", maxWidth: "600px", margin: "4rem auto" }}>
+          <span className="material-symbols-outlined" style={{ fontSize: "3.2rem", color: "#ef4444", marginBottom: "0.8rem" }}>error</span>
+          <h2 style={{ marginBottom: "0.5rem", fontFamily: "'Syne', sans-serif" }}>Unable to Load Interview</h2>
+          <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem" }}>{fetchError}</p>
+          <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
+            <button type="button" className="mic-control-btn ready" onClick={() => window.location.reload()}>
+              Retry Initialization
+            </button>
+            <button type="button" className="room-quit-btn" onClick={() => navigate("/dashboard")}>
+              Return to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 

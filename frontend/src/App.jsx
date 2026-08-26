@@ -47,7 +47,8 @@ function AuthListener() {
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
 
-  if (loading) return null;
+  // Allow children to render their immediate UI/Skeleton during initial cookie rehydration
+  if (loading) return children;
 
   return user ? children : <Navigate to="/login" replace />;
 }
@@ -58,7 +59,7 @@ function PrivateRoute({ children }) {
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
 
-  if (loading) return null;
+  if (loading) return children;
 
   return user ? <Navigate to="/dashboard" replace /> : children;
 }
