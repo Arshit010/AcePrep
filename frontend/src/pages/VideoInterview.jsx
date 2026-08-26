@@ -203,11 +203,17 @@ export default function VideoInterview() {
         setTimeLeftSeconds(remainingSeconds);
         startupGuardUntilRef.current = Date.now() + 6000;
 
-        // Restore current question index on page refresh
         const answeredCount = Array.isArray(data.answers) ? data.answers.length : 0;
         const totalQuestions = Array.isArray(data.questions) ? data.questions.length : 0;
         const nextIndex = Math.min(answeredCount, Math.max(0, totalQuestions - 1));
         setCurrent(nextIndex);
+
+        // Restore draft answer if available in sessionStorage for this session and question
+        const savedDraft = sessionStorage.getItem(`aceprep:video-interview:${id}:q:${nextIndex}:draft`);
+        if (savedDraft) {
+          setFinalTranscript(savedDraft);
+        }
+
         setAnswerSummary("");
         setAnswerReaction("");
         setQuickFeedback("");
@@ -222,6 +228,16 @@ export default function VideoInterview() {
 
     loadInterview();
   }, [id, navigate]);
+
+  useEffect(() => {
+    if (!id || loading) return;
+    const draftKey = `aceprep:video-interview:${id}:q:${current}:draft`;
+    if (finalTranscript) {
+      sessionStorage.setItem(draftKey, finalTranscript);
+    } else {
+      sessionStorage.removeItem(draftKey);
+    }
+  }, [finalTranscript, id, current, loading]);
 
   const attachStreamToVideo = (stream, videoNode) => {
     if (!stream || !videoNode) return;
@@ -684,6 +700,14 @@ export default function VideoInterview() {
       if (activeUtteranceRef.current === utterance) {
         activeUtteranceRef.current = null;
       }
+
+      // If speech fails before starting, remove spokenKey so it is not permanently blocked
+      if (options.spokenKey && event.error !== "interrupted" && event.error !== "canceled") {
+        try {
+          sessionStorage.removeItem(options.spokenKey);
+        } catch (_) {}
+      }
+
       // Never trigger onEnd when speech is canceled or interrupted intentionally
       if (
         event.error === "interrupted" ||
@@ -720,12 +744,24 @@ export default function VideoInterview() {
   };
 
   useEffect(() => {
-    if (!interview?.questions?.length) return;
+    if (!interview?.questions?.length || !id) return;
+
+    const spokenKey = `aceprep:video-interview:${id}:q:${current}:spoken`;
+    const isAlreadySpoken = sessionStorage.getItem(spokenKey) === "true";
+
+    if (isAlreadySpoken) {
+      // Question prompt was already introduced prior to browser refresh/resume. Do NOT speak again.
+      return;
+    }
+
+    sessionStorage.setItem(spokenKey, "true");
+
     const timer = window.setTimeout(() => {
-      speakText(getQuestionPrompt(current));
+      speakText(getQuestionPrompt(current), { spokenKey });
     }, current === 0 ? 40 : 20);
+
     return () => window.clearTimeout(timer);
-  }, [interview, currentQuestion, selectedVoiceURI, current]);
+  }, [interview, currentQuestion, selectedVoiceURI, current, id]);
 
   const stopMediaAndRecognition = () => {
     if (streamRef.current) {
@@ -763,10 +799,22 @@ export default function VideoInterview() {
     setMicReady(false);
   };
 
+  const clearSessionStorageData = () => {
+    try {
+      if (!id) return;
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith(`aceprep:video-interview:${id}:`)) {
+          sessionStorage.removeItem(key);
+        }
+      });
+    } catch (_) {}
+  };
+
   const leaveInterviewScreen = (nextPath = "/dashboard") => {
     allowPageExitRef.current = true;
     interviewClosedRef.current = true;
     setShowQuitPrompt(false);
+    clearSessionStorageData();
     stopMediaAndRecognition();
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
@@ -832,6 +880,9 @@ export default function VideoInterview() {
     if (isListening) recognitionRef.current?.stop();
     setFinalTranscript("");
     setInterimTranscript("");
+    if (id) {
+      sessionStorage.removeItem(`aceprep:video-interview:${id}:q:${current}:draft`);
+    }
     setRecognitionStatus("Transcript cleared. Start speaking when ready.");
   };
 
@@ -912,6 +963,10 @@ export default function VideoInterview() {
           activeUtteranceRef.current = null;
         }
         setIsSpeaking(false);
+
+        if (id) {
+          sessionStorage.removeItem(`aceprep:video-interview:${id}:q:${questionIndexSubmitted}:draft`);
+        }
 
         setCurrent(nextQuestionIndex);
         setFinalTranscript("");
