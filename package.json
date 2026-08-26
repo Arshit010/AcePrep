@@ -1,0 +1,11 @@
+{
+    "dependencies": {
+        "@emailjs/browser": "^4.4.1",
+        "axios": "^1.13.5",
+        "groq-sdk": "^0.37.0",
+        "mammoth": "^1.11.0",
+        "multer": "^2.0.2",
+        "pdf-parse": "^1.1.1",
+        "react-router-dom": "^7.13.0"
+    }
+}

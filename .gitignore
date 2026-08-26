@@ -1,0 +1,24 @@
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Production Builds & Outputs
+dist/
+build/
+
+# Temporary files & uploads
+temp_*.pdf
+*.log
+*.tmp
+
+# OS & IDE Metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.codex/
+.cursor/

@@ -1,0 +1,38 @@
+@keyframes meteor-anim {
+  0% {
+    transform: rotate(215deg) translateX(0);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(215deg) translateX(-800px);
+    opacity: 0;
+  }
+}
+
+.meteor-span {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 2px;
+  width: 2px;
+  border-radius: 9999px;
+  background-color: #a85560;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+  transform: rotate(215deg);
+  animation: meteor-anim 5s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.meteor-tail {
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1px;
+  width: 60px;
+  background: linear-gradient(to right, #a85560, transparent);
+}
