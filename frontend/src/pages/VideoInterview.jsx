@@ -1049,6 +1049,8 @@ export default function VideoInterview() {
     return <h2 className="live-loading">Interview unavailable</h2>;
   }
 
+  const isLastQuestion = Boolean(interview?.questions?.length && current + 1 === interview.questions.length);
+
   const replayCurrentQuestion = () => {
     if (!currentQuestion) return;
     speakText(currentQuestion);
@@ -1346,11 +1348,18 @@ export default function VideoInterview() {
                     Analyzing Response...
                   </>
                 ) : isPendingFeedback ? (
-                  <>
-                    Next Question
-                    <span className="material-symbols-outlined">arrow_forward</span>
-                  </>
-                ) : current + 1 === interview.questions.length ? (
+                  isLastQuestion ? (
+                    <>
+                      Finish & View Report
+                      <span className="material-symbols-outlined">arrow_forward</span>
+                    </>
+                  ) : (
+                    <>
+                      Next Question
+                      <span className="material-symbols-outlined">arrow_forward</span>
+                    </>
+                  )
+                ) : isLastQuestion ? (
                   <>
                     Finish & View Report
                     <span className="material-symbols-outlined">arrow_forward</span>
