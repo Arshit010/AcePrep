@@ -223,11 +223,47 @@ export default function VideoInterview() {
     loadInterview();
   }, [id, navigate]);
 
+  const attachStreamToVideo = (stream, videoNode) => {
+    if (!stream || !videoNode) return;
+
+    if (videoNode.srcObject !== stream) {
+      videoNode.srcObject = stream;
+    }
+
+    const playVideo = () => {
+      if (typeof videoNode.play === "function") {
+        videoNode.play().catch(() => {
+          videoNode.muted = true;
+          videoNode.play().catch(() => {});
+        });
+      }
+    };
+
+    if (videoNode.readyState >= 2) {
+      playVideo();
+    } else {
+      videoNode.onloadedmetadata = playVideo;
+      videoNode.oncanplay = playVideo;
+    }
+  };
+
+  const setVideoRef = (node) => {
+    videoRef.current = node;
+    if (node && streamRef.current) {
+      attachStreamToVideo(streamRef.current, node);
+    }
+  };
+
   useEffect(() => {
     let aborted = false;
 
     const setupMedia = async () => {
       try {
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+        }
+
         const mediaStream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true
@@ -242,7 +278,7 @@ export default function VideoInterview() {
 
         streamRef.current = mediaStream;
         if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
+          attachStreamToVideo(mediaStream, videoRef.current);
         }
 
         setCameraReady(mediaStream.getVideoTracks().some((track) => track.enabled));
@@ -282,9 +318,9 @@ export default function VideoInterview() {
   // Re-attach stream to the video element whenever it becomes available
   useEffect(() => {
     if (cameraReady && videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
+      attachStreamToVideo(streamRef.current, videoRef.current);
     }
-  }, [cameraReady]);
+  }, [cameraReady, loading]);
 
   useEffect(() => {
     const onVisibilityChange = () => {
@@ -1059,7 +1095,7 @@ export default function VideoInterview() {
 
             <div className="video-feed-box">
               <video
-                ref={videoRef}
+                ref={setVideoRef}
                 autoPlay
                 playsInline
                 muted
