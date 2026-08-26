@@ -6913,25 +6913,70 @@ footer .material-symbols-outlined {
 
 @media (max-width: 768px) {
     .lp-nav {
-        padding: 14px 20px;
+        padding: 10px 16px;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .lp-logo {
+        font-size: 1.22rem;
+        letter-spacing: -0.02em;
     }
     .nav-links {
-        gap: 12px;
+        display: none;
     }
-    .nav-link {
-        padding: 6px 10px;
-        font-size: 0.85rem;
+    .nav-actions {
+        gap: 8px;
+    }
+    .nav-signin {
+        padding: 6px 12px;
+        font-size: 0.8rem;
     }
     .nav-cta {
-        padding: 8px 14px;
-        font-size: 0.85rem;
+        padding: 6px 12px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        border-radius: 6px;
     }
-    .page-hero {
-        padding: 90px 20px 40px;
+    .lp-hero {
+        padding: 72px 16px 44px;
+    }
+    .lp-hero h1 {
+        font-size: 1.95rem;
+        line-height: 1.18;
+        letter-spacing: -0.02em;
+        margin-bottom: 12px;
     }
     .hero-sub {
-        font-size: 1rem;
-        padding: 0 10px;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        padding: 0 8px;
+        margin-bottom: 22px;
+    }
+    .hero-btns {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        max-width: 290px;
+        margin: 0 auto;
+    }
+    .btn-animated,
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        text-align: center;
+        padding: 11px 16px;
+        font-size: 0.88rem;
+        border-radius: 8px;
+    }
+    .stat-num {
+        font-size: 1.8rem;
+        letter-spacing: -0.02em;
+    }
+    .stat-label {
+        font-size: 0.8rem;
     }
     .cards-grid,
     .features-grid {
@@ -6976,17 +7021,41 @@ footer .material-symbols-outlined {
 
 @media (max-width: 480px) {
     .lp-nav {
-        flex-direction: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        padding: 12px 16px;
-        justify-content: center;
-    }
-    .nav-links {
+        padding: 8px 14px;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: center;
         width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 8px;
+    }
+    .lp-logo {
+        font-size: 1.12rem;
+    }
+    .nav-signin {
+        display: none;
+    }
+    .nav-cta {
+        padding: 5px 11px;
+        font-size: 0.78rem;
+        border-radius: 6px;
+    }
+    .lp-hero {
+        padding: 64px 14px 36px;
+    }
+    .lp-hero h1 {
+        font-size: 1.65rem;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+    }
+    .hero-sub {
+        font-size: 0.85rem;
+        line-height: 1.45;
+    }
+    .stat-num {
+        font-size: 1.55rem;
+    }
+    .stat-label {
+        font-size: 0.76rem;
     }
     .page-hero {
         padding: 80px 16px 30px;

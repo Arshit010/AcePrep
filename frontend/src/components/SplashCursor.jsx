@@ -21,7 +21,15 @@ function SplashCursor({
   const canvasRef = useRef(null);
   const animationFrameId = useRef(null);
 
+  const isMobile =
+    typeof window !== "undefined" &&
+    (window.innerWidth <= 768 ||
+      "ontouchstart" in window ||
+      (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+      window.matchMedia("(max-width: 768px)").matches);
+
   useEffect(() => {
+    if (isMobile) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -1058,6 +1066,8 @@ function SplashCursor({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (isMobile) return null;
 
   return (
     <div
