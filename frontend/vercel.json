@@ -1,5 +1,22 @@
 {
     "rewrites": [
-        { "source": "/(.*)", "destination": "/" }
+        { "source": "/", "destination": "/index.html" },
+        { "source": "/features", "destination": "/index.html" },
+        { "source": "/about", "destination": "/index.html" },
+        { "source": "/contact", "destination": "/index.html" },
+        { "source": "/privacy", "destination": "/index.html" },
+        { "source": "/privacy-policy", "destination": "/index.html" },
+        { "source": "/login", "destination": "/index.html" },
+        { "source": "/register", "destination": "/index.html" },
+        { "source": "/dashboard", "destination": "/index.html" },
+        { "source": "/start-interview", "destination": "/index.html" },
+        { "source": "/start-video-interview", "destination": "/index.html" },
+        { "source": "/resume-upload", "destination": "/index.html" },
+        { "source": "/interview/:id", "destination": "/index.html" },
+        { "source": "/video-interview/:id", "destination": "/index.html" },
+        { "source": "/result/:id", "destination": "/index.html" },
+        { "source": "/history", "destination": "/index.html" },
+        { "source": "/forgot-password", "destination": "/index.html" },
+        { "source": "/reset-password/:token", "destination": "/index.html" }
     ]
 }
