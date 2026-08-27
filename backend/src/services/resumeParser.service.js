@@ -49,7 +49,6 @@ export const parseResume = async(file) => {
             }
         }
 
-        // Final fallback: try PDF parse then Mammoth
         try {
             const data = await pdfParse(file.buffer);
             const text = data?.text?.trim();

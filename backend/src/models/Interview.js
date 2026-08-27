@@ -1,8 +1,5 @@
 import mongoose from "mongoose";
 
-/* 
-   ANSWER SUB-SCHEMA
-*/
 const answerSchema = new mongoose.Schema({
     question: {
         type: String,
@@ -65,10 +62,6 @@ const answerSchema = new mongoose.Schema({
     }
 }, { _id: false });
 
-
-/* 
-   INTERVIEW MAIN SCHEMA
- */
 const interviewSchema = new mongoose.Schema({
 
     user: {
@@ -77,13 +70,11 @@ const interviewSchema = new mongoose.Schema({
         required: true
     },
 
-
     type: {
         type: String,
         enum: ["resume", "topic", "role", "video_topic"],
         required: true
     },
-
 
     role: {
         type: String,
@@ -93,7 +84,6 @@ const interviewSchema = new mongoose.Schema({
     skills: [{
         type: String
     }],
-
 
     topic: {
         type: String,
@@ -182,12 +172,12 @@ const interviewSchema = new mongoose.Schema({
         type: String
     }],
 
-    overallFeedback: { // final report summary
+    overallFeedback: {
         type: String,
         default: ""
     },
 
-    suggestions: { // improvement suggestions
+    suggestions: {
         type: String,
         default: ""
     },
@@ -212,8 +202,6 @@ interviewSchema.add({
         default: "generated"
     }
 });
-
-
 
 const Interview =
     mongoose.models.Interview ||

@@ -52,16 +52,16 @@ export default function About() {
       <section className="page-hero">
         <div className="hero-glow" />
         <div className="hero-content">
-          <ParticleText 
-            text="About AcePrep" 
-            color="#ffffff" 
-            highlightColor="#a85560" 
+          <ParticleText
+            text="About AcePrep"
+            color="#ffffff"
+            highlightColor="#a85560"
             density={1}
             particleSize={1.8}
             scatter={240}
             idleDrift={0.9}
             pointerRepel={50}
-            fontSize="clamp(2.5rem, 5.5vw, 4.5rem)" 
+            fontSize="clamp(2.5rem, 5.5vw, 4.5rem)"
           />
           <p className="hero-sub">Empowering developers worldwide to ace their dream interviews with AI.</p>
         </div>
@@ -72,7 +72,7 @@ export default function About() {
         <div className="about-content">
           <div className="about-text">
             <p>
-              AcePrep was born from a simple idea — every developer deserves access to high-quality
+              AcePrep was born from a simple idea , every developer deserves access to high-quality
               interview preparation, regardless of their background or budget.
             </p>
             <p>

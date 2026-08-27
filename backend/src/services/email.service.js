@@ -1,18 +1,7 @@
-/**
- * Email service powered by Brevo (formerly Sendinblue).
- * Uses the Brevo transactional email HTTP API — no extra npm packages needed.
- */
+
 
 const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
-/**
- * Send a transactional email via Brevo.
- * @param {object} options
- * @param {string} options.to       - Recipient email
- * @param {string} options.subject  - Email subject
- * @param {string} options.html     - HTML body
- * @param {string} [options.toName] - Recipient name (optional)
- */
 async function sendEmail({ to, subject, html, toName }) {
     const apiKey = process.env.BREVO_API_KEY;
     const senderEmail = process.env.SENDER_EMAIL || "aceprepx@gmail.com";
@@ -116,7 +105,7 @@ export const sendOtpEmail = async (toEmail, otp, name = "there") => {
     await sendEmail({
         to: toEmail,
         toName: name,
-        subject: `${otp} — Your AcePrep Verification Code`,
+        subject: `${otp} , Your AcePrep Verification Code`,
         html: htmlContent,
     });
 };

@@ -31,9 +31,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="auth-split-page">
-      {/* ── Left 50% Showcase Side ── */}
-      <div className="auth-split-showcase">
+    <div className="auth-split-page"><div className="auth-split-showcase">
         <div className="showcase-glow-bg" />
         <div className="showcase-header">
           <div className="showcase-brand" onClick={() => navigate("/")}>
@@ -60,10 +58,7 @@ export default function ForgotPassword() {
             "Your account security is our top priority. Reset links are encrypted and expire automatically."
           </p>
         </div>
-      </div>
-
-      {/* ── Right 50% Production Form Side ── */}
-      <div className="auth-split-form-panel">
+      </div><div className="auth-split-form-panel">
         <div className="auth-prod-form-wrapper">
           <div className="auth-prod-header">
             <div className="auth-mobile-logo" onClick={() => navigate("/")}>

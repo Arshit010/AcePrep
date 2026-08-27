@@ -15,8 +15,6 @@ const pendingUserSchema = new mongoose.Schema({
         index: true,
     },
 
-    /* Stored as plain text — will be hashed by the User model when the
-       real account is created after OTP verification. */
     password: {
         type: String,
         required: true,
@@ -37,7 +35,7 @@ const pendingUserSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: 600, // TTL: auto-delete after 10 minutes
+        expires: 600,
     },
 });
 

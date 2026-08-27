@@ -23,8 +23,6 @@ const feedbackSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-
-
 const Feedback =
     mongoose.models.Feedback ||
     mongoose.model("Feedback", feedbackSchema);

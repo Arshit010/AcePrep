@@ -46,7 +46,6 @@ export default function ResumeUpload() {
         },
       });
 
-      // Smooth step simulation for AI profile extraction
       setUploadProgress(75);
       setStatusMessage("Extracting skills, experience & technologies...");
       await new Promise((r) => setTimeout(r, 400));

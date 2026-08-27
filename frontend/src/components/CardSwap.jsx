@@ -67,7 +67,6 @@ export default function CardSwap({
 
       orderRef.current = Array.from({ length: els.length }, (_, i) => i);
 
-      // Initial positioning safely
       els.forEach((el, i) => {
         if (!el) return;
         const slot = makeSlot(i, cardDistance, verticalDistance, els.length);

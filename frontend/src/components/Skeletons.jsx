@@ -1,8 +1,5 @@
 import React from "react";
 
-/**
- * Base Skeleton block element with accessible ARIA semantics.
- */
 export function SkeletonBlock({ className = "", width, height, borderRadius, style = {} }) {
   return (
     <div
@@ -18,9 +15,6 @@ export function SkeletonBlock({ className = "", width, height, borderRadius, sty
   );
 }
 
-/**
- * Skeleton Loader for Dashboard page (matches Dashboard.jsx grid & hero structure)
- */
 export function DashboardSkeleton() {
   return (
     <div className="db-root skeleton-wrapper" role="status" aria-busy="true" aria-label="Loading dashboard...">
@@ -72,9 +66,6 @@ export function DashboardSkeleton() {
   );
 }
 
-/**
- * Skeleton Loader for History page (matches History.jsx cards & layout)
- */
 export function HistorySkeleton() {
   return (
     <div className="history-container skeleton-wrapper" role="status" aria-busy="true" aria-label="Loading past interviews...">
@@ -115,9 +106,6 @@ export function HistorySkeleton() {
   );
 }
 
-/**
- * Skeleton Loader for Interview Result Report (matches InterviewResult.jsx layout)
- */
 export function InterviewResultSkeleton() {
   return (
     <div className="report-container skeleton-wrapper" role="status" aria-busy="true" aria-label="Generating interview report...">
@@ -162,9 +150,6 @@ export function InterviewResultSkeleton() {
   );
 }
 
-/**
- * Skeleton Loader for Live/Video Interview Session (matches LiveInterview.jsx & VideoInterview.jsx)
- */
 export function InterviewSessionSkeleton() {
   return (
     <div className="live-container skeleton-wrapper" role="status" aria-busy="true" aria-label="Preparing interview session...">
@@ -191,14 +176,9 @@ export function InterviewSessionSkeleton() {
   );
 }
 
-/**
- * Skeleton Loader for AI Video Interview Session (matches VideoInterview.jsx layout 1:1)
- */
 export function VideoInterviewSkeleton() {
   return (
-    <div className="video-interview-shell skeleton-wrapper" role="status" aria-busy="true" aria-label="Loading video interview studio...">
-      {/* Top Header Bar Skeleton */}
-      <header className="video-room-topbar" style={{ marginBottom: "1.25rem" }}>
+    <div className="video-interview-shell skeleton-wrapper" role="status" aria-busy="true" aria-label="Loading video interview studio..."><header className="video-room-topbar" style={{ marginBottom: "1.25rem" }}>
         <div className="topbar-left">
           <div className="room-topic-badge" style={{ padding: "0.2rem 0.5rem" }}>
             <SkeletonBlock width="180px" height="24px" borderRadius="999px" />
@@ -216,14 +196,7 @@ export function VideoInterviewSkeleton() {
           <SkeletonBlock width="115px" height="32px" borderRadius="999px" />
           <SkeletonBlock width="75px" height="32px" borderRadius="999px" />
         </div>
-      </header>
-
-      {/* Main Studio Area Skeleton */}
-      <div className="video-room-main">
-        {/* Left Column Skeleton: Candidate Camera, AI Card, Telemetry */}
-        <aside className="video-left-studio" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {/* Camera Box Skeleton */}
-          <div className="video-camera-card">
+      </header><div className="video-room-main"><aside className="video-left-studio" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}><div className="video-camera-card">
             <div className="camera-header-overlay" style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px" }}>
               <SkeletonBlock width="65px" height="22px" borderRadius="999px" />
               <SkeletonBlock width="24px" height="24px" borderRadius="50%" />
@@ -234,19 +207,13 @@ export function VideoInterviewSkeleton() {
                 <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem" }}>Initializing camera & microphone...</p>
               </div>
             </div>
-          </div>
-
-          {/* AI Speaker Card Skeleton */}
-          <div className="ai-speaker-card skeleton-card" style={{ display: "flex", alignItems: "center", gap: "0.9rem", padding: "0.9rem 1.1rem" }}>
+          </div><div className="ai-speaker-card skeleton-card" style={{ display: "flex", alignItems: "center", gap: "0.9rem", padding: "0.9rem 1.1rem" }}>
             <SkeletonBlock width="32px" height="32px" borderRadius="50%" style={{ flexShrink: 0 }} />
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
               <SkeletonBlock width="130px" height="15px" borderRadius="4px" />
               <SkeletonBlock width="170px" height="12px" borderRadius="4px" />
             </div>
-          </div>
-
-          {/* Telemetry Box Skeleton */}
-          <div className="studio-telemetry-box skeleton-card" style={{ padding: "1.1rem" }}>
+          </div><div className="studio-telemetry-box skeleton-card" style={{ padding: "1.1rem" }}>
             <SkeletonBlock width="80px" height="12px" borderRadius="4px" style={{ marginBottom: "0.6rem" }} />
             <div style={{ display: "flex", gap: "6px", marginBottom: "1rem" }}>
               <SkeletonBlock width="65px" height="22px" borderRadius="999px" />
@@ -264,12 +231,7 @@ export function VideoInterviewSkeleton() {
               </div>
             </div>
           </div>
-        </aside>
-
-        {/* Right Column Skeleton: Question Card & Response Card */}
-        <main className="video-right-studio">
-          {/* Question Card Skeleton */}
-          <div className="active-question-card skeleton-card" style={{ padding: "1.35rem" }}>
+        </aside><main className="video-right-studio"><div className="active-question-card skeleton-card" style={{ padding: "1.35rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
               <SkeletonBlock width="130px" height="26px" borderRadius="999px" />
               <SkeletonBlock width="110px" height="30px" borderRadius="999px" />
@@ -279,10 +241,7 @@ export function VideoInterviewSkeleton() {
               <SkeletonBlock width="68%" height="22px" borderRadius="4px" />
             </div>
             <SkeletonBlock width="75%" height="14px" borderRadius="4px" />
-          </div>
-
-          {/* Response Card Skeleton */}
-          <div className="verbal-response-card skeleton-card" style={{ padding: "1.35rem", marginTop: "1.25rem" }}>
+          </div><div className="verbal-response-card skeleton-card" style={{ padding: "1.35rem", marginTop: "1.25rem" }}>
             <div style={{ marginBottom: "1rem" }}>
               <SkeletonBlock width="180px" height="26px" borderRadius="999px" />
             </div>

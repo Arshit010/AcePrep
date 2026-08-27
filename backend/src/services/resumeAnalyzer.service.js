@@ -1,37 +1,31 @@
 import aiClient, { DEFAULT_MODEL, callAiWithRetry } from "./aiClient.js";
 
 const COMPREHENSIVE_SKILL_DICTIONARY = [
-    // Languages & Syntax
+
     "JavaScript", "TypeScript", "Python", "Java", "C++", "C#", "C", "Go", "Rust",
     "PHP", "Ruby", "Swift", "Kotlin", "R", "SQL", "HTML", "CSS", "HTML5", "CSS3",
     "Bash", "Shell", "PowerShell", "Dart", "Scala", "Perl",
 
-    // Web Frameworks & Frontend
     "React", "React.js", "ReactJS", "Redux", "Next.js", "Vue", "Vue.js", "Angular",
     "Tailwind", "TailwindCSS", "Bootstrap", "Sass", "Webpack", "Vite",
     "jQuery", "Material UI", "Chakra UI", "Svelte",
 
-    // Backend & APIs
     "Node.js", "NodeJS", "Node", "Express", "Express.js", "Django", "Flask",
     "FastAPI", "Spring Boot", "Spring", "ASP.NET", ".NET", "Ruby on Rails",
     "NestJS", "REST API", "GraphQL", "Microservices", "WebSockets",
 
-    // Databases & Storage
     "MongoDB", "PostgreSQL", "Postgres", "MySQL", "SQLite", "Redis", "Oracle",
     "Firebase", "Supabase", "DynamoDB", "Cassandra", "Elasticsearch", "Prisma",
     "Mongoose", "Sequelize",
 
-    // DevOps, Cloud & Tools
     "Docker", "Kubernetes", "AWS", "Amazon Web Services", "Azure", "GCP",
     "Google Cloud", "Git", "GitHub", "GitLab", "CI/CD", "Jenkins", "Nginx",
     "Linux", "Terraform", "Postman", "Vercel", "Netlify",
 
-    // Data Science, ML & AI
     "Machine Learning", "Deep Learning", "Artificial Intelligence", "AI",
     "TensorFlow", "PyTorch", "Pandas", "NumPy", "Scikit-Learn", "OpenCV",
     "NLP", "Data Analysis", "Data Visualization", "Tableau", "Power BI",
 
-    // Concepts & Soft Skills
     "Object-Oriented Programming", "OOP", "Data Structures", "Algorithms",
     "System Design", "Agile", "Scrum", "Problem Solving", "Communication",
     "Team Leadership", "Project Management", "UI/UX Design", "Figma"
@@ -71,7 +65,6 @@ function extractProjectsFromText(resumeText) {
     return projects.slice(0, 4);
 }
 
-/* ---------------- SAFE JSON EXTRACTOR ---------------- */
 function extractJSON(text) {
     if (!text) return null;
 
@@ -89,7 +82,6 @@ function extractJSON(text) {
     }
 }
 
-
 function normalizeProjects(projects, fallbackProjects = []) {
     const list = Array.isArray(projects) && projects.length > 0 ? projects : fallbackProjects;
     if (!Array.isArray(list)) return [];
@@ -100,7 +92,6 @@ function normalizeProjects(projects, fallbackProjects = []) {
         tech_stack: Array.isArray(p?.tech_stack) ? p.tech_stack.map(t => String(t)) : []
     }));
 }
-
 
 function fallbackProfile(keywordFallback = [], projectFallback = []) {
     const tech = keywordFallback.length > 0 ? keywordFallback : ["JavaScript", "HTML/CSS", "SQL", "Git", "Web Technologies"];
@@ -114,7 +105,6 @@ function fallbackProfile(keywordFallback = [], projectFallback = []) {
         projects: normalizeProjects([], projectFallback)
     };
 }
-
 
 export const analyzeResume = async(resumeText) => {
     if (!resumeText || typeof resumeText !== "string") {

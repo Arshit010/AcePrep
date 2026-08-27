@@ -4,8 +4,6 @@ import { parseResume } from "../services/resumeParser.service.js";
 import { analyzeResume } from "../services/resumeAnalyzer.service.js";
 import { generateInterviewQuestions } from "../services/ai.service.js";
 
-/* AI OUTPUT SANITIZER*/
-
 function cleanArray(arr, limit = 15) {
     if (!Array.isArray(arr)) return [];
 
@@ -44,7 +42,6 @@ function normalizeProfile(profile) {
     };
 }
 
-/* UPLOAD RESUME & ANALYZE */
 export const uploadResume = async(req, res) => {
     try {
         const userId = req.user?._id;
@@ -55,7 +52,6 @@ export const uploadResume = async(req, res) => {
         if (!req.file)
             return res.status(400).json({ message: "No file uploaded" });
 
-        /* ---------- STEP 1: TEXT EXTRACTION ---------- */
         let extractedText;
         try {
             extractedText = await parseResume(req.file);
@@ -77,7 +73,6 @@ export const uploadResume = async(req, res) => {
             });
         }
 
-        /* AI PROFILE ANALYSIS */
         let profile = {
             role: "Software Developer",
             skills: [],
@@ -94,7 +89,6 @@ export const uploadResume = async(req, res) => {
             profile = normalizeProfile(profile);
         }
 
-        /*SAVE RESUME SAFELY*/
         let resume;
         try {
             resume = await Resume.create({
@@ -107,7 +101,6 @@ export const uploadResume = async(req, res) => {
             console.error("DB SAVE FAILED:", dbErr.message);
             return res.status(500).json({ message: "Resume too complex to process" });
         }
-
 
         return res.status(201).json({
             message: "Resume analyzed successfully",
@@ -122,7 +115,6 @@ export const uploadResume = async(req, res) => {
         });
     }
 };
-
 
 export const startResumeInterview = async(req, res) => {
     try {
@@ -142,12 +134,10 @@ export const startResumeInterview = async(req, res) => {
 
         const profile = resume.profile;
 
-
         const questions = await generateInterviewQuestions(profile, "medium");
 
         if (!questions || questions.length === 0)
             return res.status(500).json({ message: "AI failed to generate questions" });
-
 
         const interview = await Interview.create({
             user: userId,
@@ -172,7 +162,6 @@ export const startResumeInterview = async(req, res) => {
     }
 };
 
-
 export const getMyResumes = async(req, res) => {
     try {
         const userId = req.user?._id;
@@ -191,7 +180,6 @@ export const getMyResumes = async(req, res) => {
         res.status(500).json({ message: "Failed to fetch resumes" });
     }
 };
-
 
 export const getResumeProfile = async(req, res) => {
     try {
@@ -215,7 +203,6 @@ export const getResumeProfile = async(req, res) => {
         res.status(500).json({ message: "Failed to fetch profile" });
     }
 };
-
 
 export const deleteResume = async(req, res) => {
     try {

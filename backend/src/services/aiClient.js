@@ -10,7 +10,6 @@ if (!process.env.GROQ_API_KEY) {
 
 export const DEFAULT_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 
-// 25 second timeout for Groq API calls
 const AI_TIMEOUT_MS = Number(process.env.AI_REQUEST_TIMEOUT_MS) || 25000;
 
 const aiClient = new Groq({
@@ -18,11 +17,6 @@ const aiClient = new Groq({
   timeout: AI_TIMEOUT_MS,
 });
 
-/**
- * Execute an AI call with exponential backoff retry logic.
- * Retries ONLY on transient errors (e.g. 5xx status or network timeouts).
- * Fails fast without retrying on 4xx / rate-limit responses to avoid amplification loops.
- */
 export async function callAiWithRetry(aiCallFn, maxRetries = 2) {
   let attempt = 0;
   let delayMs = 1000;
@@ -50,7 +44,6 @@ export async function callAiWithRetry(aiCallFn, maxRetries = 2) {
         attempt,
       });
 
-      // Do NOT retry non-transient errors (4xx or 429 rate limit)
       if (!isTransient || attempt > maxRetries) {
         throw new Error(
           status === 429
@@ -59,7 +52,6 @@ export async function callAiWithRetry(aiCallFn, maxRetries = 2) {
         );
       }
 
-      // Exponential backoff
       await new Promise((resolve) => setTimeout(resolve, delayMs));
       delayMs *= 2;
     }

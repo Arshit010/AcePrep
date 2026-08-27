@@ -8,7 +8,6 @@ import { useAuth } from "../context/AuthContext";
 
 import SEO from "../components/SEO";
 
-/* ─── Animated Count-Up Hook ─── */
 function useCountUp(end, duration = 2000) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
@@ -43,7 +42,6 @@ function useCountUp(end, duration = 2000) {
   return { count, ref };
 }
 
-/* ─── Stat Counter ─── */
 function StatCounter({ end, suffix = "", label, duration }) {
   const { count, ref } = useCountUp(end, duration);
   return (
@@ -54,7 +52,6 @@ function StatCounter({ end, suffix = "", label, duration }) {
   );
 }
 
-/* ─── Scroll Reveal Hook ─── */
 function useScrollReveal() {
   const ref = useRef(null);
   useEffect(() => {
@@ -70,7 +67,6 @@ function useScrollReveal() {
   return ref;
 }
 
-/* ─── Card Mouse Spotlight Handler ─── */
 function handleCardMouseMove(e) {
   const rect = e.currentTarget.getBoundingClientRect();
   const x = e.clientX - rect.left;
@@ -79,7 +75,6 @@ function handleCardMouseMove(e) {
   e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
 }
 
-/* ─── Action Card ─── */
 function ActionCard({ icon, title, description, buttonText, onClick, delay = 0 }) {
   const ref = useScrollReveal();
   return (
@@ -99,7 +94,6 @@ function ActionCard({ icon, title, description, buttonText, onClick, delay = 0 }
   );
 }
 
-/* ─── Step Card ─── */
 function StepCard({ number, title, description, delay }) {
   const ref = useScrollReveal();
   return (
@@ -116,7 +110,6 @@ function StepCard({ number, title, description, delay }) {
   );
 }
 
-/* ─── Feature Card ─── */
 function FeatureCard({ icon, title, description, delay }) {
   const ref = useScrollReveal();
   return (
@@ -139,7 +132,6 @@ export default function Landing() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  /* ─── Lenis Smooth Scroll ─── */
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
@@ -166,10 +158,7 @@ export default function Landing() {
         description="Practice smarter, learn faster, and walk into every technical interview with confidence. AcePrep offers real-time AI mock interviews, custom topic practice, instant scoring, and actionable feedback."
       />
 
-      <Navbar />
-
-      {/* ─── Hero ─── */}
-      <section className="lp-hero">
+      <Navbar /><section className="lp-hero">
         <div className="hero-bg">
           <SlicedWaves
             color1="#E0A4AC"
@@ -222,17 +211,11 @@ export default function Landing() {
             )}
           </div>
         </div>
-      </section>
-
-      {/* ─── Stats ─── */}
-      <div className="stats-bar">
+      </section><div className="stats-bar">
         <StatCounter end={5000} suffix="+" label="Interviews Completed" duration={2200} />
         <StatCounter end={95}   suffix="%" label="Satisfaction Rate"    duration={1800} />
         <StatCounter end={500}  suffix="+" label="Topics Covered"      duration={2000} />
-      </div>
-
-      {/* ─── Quick Actions ─── */}
-      <section className="lp-section">
+      </div><section className="lp-section">
         <h2 className="section-title">Quick <span className="title-accent">Actions</span></h2>
         <div className="cards-grid-single">
           <ActionCard
@@ -244,21 +227,15 @@ export default function Landing() {
             delay={0}
           />
         </div>
-      </section>
-
-      {/* ─── How It Works ─── */}
-      <section className="lp-how">
+      </section><section className="lp-how">
         <h2 className="section-title">How It <span className="title-accent">Works</span></h2>
         <div className="steps-grid">
-          <StepCard number="01" title="Sign Up Free" description="Create your account in seconds. No credit card needed — just jump right in." delay={0} />
+          <StepCard number="01" title="Sign Up Free" description="Create your account in seconds. No credit card needed , just jump right in." delay={0} />
           <StepCard number="02" title="Select Your Topic" description="Choose from 500+ topics or enter your own. Tailor the interview to your goals." delay={150} />
           <StepCard number="03" title="Give the Interview" description="Answer real-world questions in a realistic, AI-powered interview experience." delay={300} />
-          <StepCard number="04" title="Get Instant Feedback" description="Receive detailed scores, hiring verdicts, strengths, and areas to improve — instantly." delay={450} />
+          <StepCard number="04" title="Get Instant Feedback" description="Receive detailed scores, hiring verdicts, strengths, and areas to improve , instantly." delay={450} />
         </div>
-      </section>
-
-      {/* ─── Why AcePrep ─── */}
-      <section className="lp-section">
+      </section><section className="lp-section">
         <h2 className="section-title">Why <span className="title-accent">AcePrep</span></h2>
         <div className="features-grid">
           <FeatureCard icon="person" title="Personalized Interviews" description="Role-specific questions tailored to your exact skillset and experience level." delay={0} />
@@ -266,12 +243,9 @@ export default function Landing() {
           <FeatureCard icon="assessment" title="Detailed Reports" description="Hiring verdicts, scores, strengths, weaknesses, and actionable improvement insights." delay={360} />
           <FeatureCard icon="lock" title="Private & Secure" description="Your resume, responses, and personal data remain fully encrypted and private." delay={540} />
           <FeatureCard icon="trending_up" title="Track Progress" description="Monitor your growth over time with interview history and performance trends." delay={720} />
-          <FeatureCard icon="devices" title="Practice Anywhere" description="Seamless experience across desktop, tablet, and mobile — interview on the go." delay={900} />
+          <FeatureCard icon="devices" title="Practice Anywhere" description="Seamless experience across desktop, tablet, and mobile , interview on the go." delay={900} />
         </div>
-      </section>
-
-      {/* ─── CTA ─── */}
-      <div className="lp-cta">
+      </section><div className="lp-cta">
         <div className="cta-glow" />
         <h2>Ready to Ace Your Next Interview?</h2>
         <p>Join thousands of developers practicing smarter with AcePrep.</p>
@@ -291,10 +265,7 @@ export default function Landing() {
             </>
           )}
         </div>
-      </div>
-
-      {/* ─── Footer ─── */}
-      <footer className="lp-footer">
+      </div><footer className="lp-footer">
         <div className="footer-top-row">
           <div className="footer-brand">AcePrep © {new Date().getFullYear()}</div>
           <div className="footer-links">

@@ -30,9 +30,9 @@ export const protect = async(req, res, next) => {
 
                     return next();
                 }
-                // Token version mismatch or legacy token without version -> fall through to refresh check
+
             } catch (err) {
-                // Invalid or expired access token -> fall through to refresh check
+
             }
         }
 

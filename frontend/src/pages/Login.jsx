@@ -45,9 +45,7 @@ export default function Login() {
       <SEO
         title="Sign In"
         description="Sign in to your AcePrep account to access your AI mock interviews, performance reports, and saved resumes."
-      />
-      {/* ── Left 50% Showcase Side ── */}
-      <div className="auth-split-showcase">
+      /><div className="auth-split-showcase">
         <div className="showcase-glow-bg" />
         <div className="showcase-header">
           <div className="showcase-brand" onClick={() => navigate("/")}>
@@ -74,10 +72,7 @@ export default function Login() {
           "Practicing with AcePrep’s AI interviewer elevated both my verbal delivery and technical accuracy, replacing guesswork with structured, actionable insights."
           </p>
         </div>
-      </div>
-
-      {/* ── Right 50% Production Form Side ── */}
-      <div className="auth-split-form-panel">
+      </div><div className="auth-split-form-panel">
         <div className="auth-prod-form-wrapper">
           <div className="auth-prod-header">
             <div className="auth-mobile-logo" onClick={() => navigate("/")}>

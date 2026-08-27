@@ -34,16 +34,16 @@ export default function Contact() {
       <section className="page-hero">
         <div className="hero-glow" />
         <div className="hero-content">
-          <ParticleText 
-            text="Get In Touch" 
-            color="#ffffff" 
-            highlightColor="#a85560" 
+          <ParticleText
+            text="Get In Touch"
+            color="#ffffff"
+            highlightColor="#a85560"
             density={1}
             particleSize={1.8}
             scatter={240}
             idleDrift={0.9}
             pointerRepel={50}
-            fontSize="clamp(2.5rem, 5.5vw, 4.5rem)" 
+            fontSize="clamp(2.5rem, 5.5vw, 4.5rem)"
           />
           <p className="hero-sub">Have questions, feedback, or just want to say hello? We'd love to hear from you.</p>
         </div>

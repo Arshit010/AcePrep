@@ -2,9 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import ScrollToTopButton from "./ScrollToTopButton"; 
-import FAQSection from "../components/FAQSection"; 
-import SEO from "../components/SEO"; 
+import ScrollToTopButton from "./ScrollToTopButton";
+import FAQSection from "../components/FAQSection";
+import SEO from "../components/SEO";
 import { DashboardSkeleton } from "../components/Skeletons";
 
 const faqs = [
@@ -29,25 +29,21 @@ const faqs = [
     a: "AcePrep uses the Groq API for ultra fast, real time AI responses making your interviews feel natural and fluid, just like talking to a real interviewer.",
   },
 
-  
   {
     q: "Is my resume and interview data secure?",
     a: "Yes. Your resume and interview responses are securely stored and never shared with third parties. We prioritize user privacy and data protection at every step.",
   },
 
-  
   {
     q: "Does AcePrep simulate real company interviews?",
     a: "Yes. AcePrep is designed to mirror real world interview scenarios. Questions focus on reasoning, trade offs, problem solving, and communication similar to actual technical interviews at top companies.",
   },
 
-  
   {
     q: "Can I track my improvement over time?",
     a: "Absolutely. Your past interviews are saved with detailed scores and feedback, allowing you to compare performance, identify patterns, and continuously improve your interview skills.",
   },
 
-  
   {
     q: "What makes AcePrep different from other interview platforms?",
     a: "Unlike static question banks, AcePrep generates dynamic, personalized interviews powered by AI. Every session adapts to your profile, difficulty level, and responses making each interview unique.",
@@ -98,13 +94,11 @@ export default function Dashboard() {
         <button className="logout-btn" onClick={handleLogout}>Logout</button>
       </header>
 
-      
       <div className="db-hero">
         <h1>Your Interview Command Center</h1>
         <p>Practice smarter, learn faster, and walk into every interview with confidence.</p>
       </div>
 
-      
       <div className="db-section">
         <div className="db-section-title">Quick <span>Actions</span></div>
         <div className="db-grid-4">
@@ -137,7 +131,6 @@ export default function Dashboard() {
 
       <div className="db-divider" />
 
-      
       <div className="db-section">
         <div className="db-section-title">How It <span>Works</span></div>
         <div className="db-grid-3">
@@ -164,7 +157,6 @@ export default function Dashboard() {
 
       <div className="db-divider" />
 
-      
       <div className="db-section">
         <div className="db-section-title">Who We <span>Serve</span></div>
         <div className="wws-grid">
@@ -198,7 +190,6 @@ export default function Dashboard() {
 
       <div className="db-divider" />
 
-      
       <div className="db-section">
         <div className="db-section-title center">Contact <span>Us</span></div>
         <div className="contact-section">
@@ -215,13 +206,11 @@ export default function Dashboard() {
         </div>
       </div>
 
-      
       <footer>
         <div className="f-logo">AcePrep</div>
         <p>© {new Date().getFullYear()} AcePrep. All rights reserved. • <span onClick={() => window.open("/privacy", "_blank")} style={{ cursor: "pointer", textDecoration: "underline" }}>Privacy Policy</span></p>
       </footer>
 
-      
       <ScrollToTopButton />
     </div>
   );

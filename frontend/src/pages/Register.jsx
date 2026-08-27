@@ -16,17 +16,14 @@ function getPasswordStrength(pw) {
 
   const varietyCount = [hasLower, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
 
-  // Weak (Level 1): Less than 6 characters OR single character type
   if (length < 6 || varietyCount === 1) {
     return { label: "Weak", level: 1 };
   }
 
-  // Strong (Level 3): 10+ characters with 3+ types, OR 8+ characters with all 4 types
   if ((length >= 10 && varietyCount >= 3) || (length >= 8 && varietyCount === 4)) {
     return { label: "Strong", level: 3 };
   }
 
-  // Medium (Level 2): 8+ characters with 2+ types, OR 6+ characters with 3+ types
   if ((length >= 8 && varietyCount >= 2) || (length >= 6 && varietyCount >= 3)) {
     return { label: "Medium", level: 2 };
   }

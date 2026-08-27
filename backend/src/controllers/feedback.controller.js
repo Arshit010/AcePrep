@@ -1,29 +1,23 @@
 import Feedback from "../models/Feedback.js";
 import Interview from "../models/Interview.js";
 
-
-/* SUBMIT FEEDBACK*/
 export const submitFeedback = async(req, res) => {
     try {
         const userId = req.user?._id;
         const { interviewId, rating, comment } = req.body;
 
-
         if (!interviewId || !rating) {
             return res.status(400).json({ message: "Interview and rating are required" });
         }
-
 
         const interview = await Interview.findById(interviewId);
         if (!interview) {
             return res.status(404).json({ message: "Interview not found" });
         }
 
-
         if (interview.user.toString() !== userId.toString()) {
             return res.status(403).json({ message: "Unauthorized feedback attempt" });
         }
-
 
         const feedback = await Feedback.create({
             user: userId,
@@ -43,9 +37,6 @@ export const submitFeedback = async(req, res) => {
     }
 };
 
-
-
-/* GET MY FEEDBACKS */
 export const getMyFeedbacks = async(req, res) => {
     try {
         const userId = req.user?._id;
@@ -61,8 +52,6 @@ export const getMyFeedbacks = async(req, res) => {
         res.status(500).json({ message: "Failed to fetch feedbacks" });
     }
 };
-
-
 
 export const getInterviewFeedback = async(req, res) => {
     try {

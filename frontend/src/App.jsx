@@ -21,9 +21,6 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
-/*
-   AUTH LISTENER
-*/
 function AuthListener() {
   const navigate = useNavigate();
   const { clearUser } = useAuth();
@@ -41,21 +38,14 @@ function AuthListener() {
   return null;
 }
 
-/*
-   PRIVATE ROUTE (Cookie Based)
-*/
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
 
-  // Allow children to render their immediate UI/Skeleton during initial cookie rehydration
   if (loading) return children;
 
   return user ? children : <Navigate to="/login" replace />;
 }
 
-/*
-   PUBLIC ROUTE (Cookie Based)
-*/
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
 
@@ -70,36 +60,21 @@ export default function App() {
       <BrowserRouter>
         <AuthListener />
 
-        <Routes>
-
-          {/* Public Landing */}
-          <Route path="/" element={<Landing />} />
+        <Routes><Route path="/" element={<Landing />} />
           <Route path="/features" element={<Features />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-
-          {/* Auth Routes */}
-          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-
-          {/* Protected Routes */}
-          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} /><Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} /><Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/start-interview" element={<PrivateRoute><StartInterview /></PrivateRoute>} />
           <Route path="/start-video-interview" element={<PrivateRoute><StartVideoInterview /></PrivateRoute>} />
           <Route path="/resume-upload" element={<PrivateRoute><ResumeUpload /></PrivateRoute>} />
           <Route path="/interview/:id" element={<PrivateRoute><LiveInterview /></PrivateRoute>} />
           <Route path="/video-interview/:id" element={<PrivateRoute><VideoInterview /></PrivateRoute>} />
           <Route path="/result/:id" element={<PrivateRoute><InterviewResult /></PrivateRoute>} />
-          <Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
-
-          {/* Password Routes */}
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
-
-          {/* Fallback 404 */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} /><Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} /><Route path="*" element={<NotFound />} />
 
         </Routes>
       </BrowserRouter>

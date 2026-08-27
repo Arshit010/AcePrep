@@ -9,7 +9,6 @@ const getUserId = (req) =>
 const clamp = (value, min, max) =>
     Math.max(min, Math.min(max, Number(value) || min));
 
-/* GENERATE ROLE INTERVIEW */
 export const generateInterview = async(req, res) => {
     try {
         const { role, difficulty } = req.body;
@@ -23,7 +22,6 @@ export const generateInterview = async(req, res) => {
 
         const safeRole = String(role).trim().slice(0, 100);
 
-        // Fetch questions from recent past interviews for this user + role
         const pastInterviews = await Interview.find({
             user: userId,
             type: "role",
@@ -61,7 +59,6 @@ export const generateInterview = async(req, res) => {
     }
 };
 
-/* TOPIC INTERVIEW */
 export const startTopicInterview = async(req, res) => {
     try {
         const { topic, difficulty } = req.body;
@@ -72,7 +69,6 @@ export const startTopicInterview = async(req, res) => {
 
         const safeTopic = String(topic).trim().slice(0, 100);
 
-        // Fetch questions from recent past interviews for this user + topic
         const pastInterviews = await Interview.find({
             user: userId,
             type: "topic",
@@ -110,7 +106,6 @@ export const startTopicInterview = async(req, res) => {
     }
 };
 
-/* VIDEO TOPIC INTERVIEW */
 export const startVideoTopicInterview = async(req, res) => {
     try {
         const {
@@ -143,7 +138,6 @@ export const startVideoTopicInterview = async(req, res) => {
                     12
                 ));
 
-        // Fetch questions from recent past video interviews for this user + topic
         const pastInterviews = await Interview.find({
             user: userId,
             type: "video_topic",
@@ -199,7 +193,6 @@ export const startVideoTopicInterview = async(req, res) => {
     }
 };
 
-/* SUBMIT ANSWER*/
 export const submitAnswer = async(req, res) => {
     try {
         const { interviewId, questionIndex, answer, integrity } = req.body;
@@ -218,7 +211,6 @@ export const submitAnswer = async(req, res) => {
         if (!question)
             return res.status(400).json({ message: "Invalid question index" });
 
-        // Idempotency guard: If this question index was already answered, return saved response without triggering AI again
         const existingAnswer = interview.answers[questionIndex];
         if (existingAnswer) {
             return res.json({
@@ -256,17 +248,14 @@ export const submitAnswer = async(req, res) => {
         if (integrity && typeof integrity === "object") {
             const incomingIntegrity = clamp(integrity.integrityScore, 0, 100);
 
-            // Preserve the lowest integrity score seen so far instead of accidentally resetting to 100
-            // when the client reloads mid-interview and sends a fresh default score.
             const currentIntegrity = typeof interview.integrityScore === "number" ? interview.integrityScore : 100;
             interview.integrityScore = Math.min(currentIntegrity, incomingIntegrity);
 
-            // Keep the highest suspicious action count to avoid losing events on reloads.
             const incomingCount = clamp(integrity.suspiciousActionsCount, 0, 999);
             interview.suspiciousActionsCount = Math.max(incomingCount, interview.suspiciousActionsCount || 0);
 
             if (Array.isArray(integrity.suspiciousEvents)) {
-                // Merge and keep the latest 50 unique-ish entries.
+
                 const merged = [...(interview.suspiciousEvents || []), ...integrity.suspiciousEvents]
                     .map(item => String(item))
                     .slice(-50);
@@ -320,7 +309,6 @@ export const submitAnswer = async(req, res) => {
     }
 };
 
-/* SAVE INTEGRITY STATE (called on navigation away / periodically) */
 export const saveIntegrity = async(req, res) => {
     try {
         const { interviewId, integrityScore, suspiciousActionsCount, suspiciousEvents } = req.body;
@@ -406,7 +394,6 @@ export const abandonInterview = async(req, res) => {
     }
 };
 
-/* INTERVIEW RESULT*/
 export const getInterviewResult = async(req, res) => {
     try {
         const interviewId = req.params.id;
@@ -456,7 +443,6 @@ export const getInterviewResult = async(req, res) => {
     }
 };
 
-/* HISTORY*/
 export const getInterviewHistory = async(req, res) => {
     try {
         const userId = getUserId(req);
@@ -473,7 +459,6 @@ export const getInterviewHistory = async(req, res) => {
     }
 };
 
-/* DELETE INTERVIEW */
 export const deleteInterview = async(req, res) => {
     try {
         const interviewId = req.params.id;

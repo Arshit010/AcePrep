@@ -54,9 +54,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="auth-split-page">
-      {/* ── Left 50% Showcase Side ── */}
-      <div className="auth-split-showcase">
+    <div className="auth-split-page"><div className="auth-split-showcase">
         <div className="showcase-glow-bg" />
         <div className="showcase-header">
           <div className="showcase-brand" onClick={() => navigate("/")}>
@@ -83,10 +81,7 @@ export default function ResetPassword() {
             "Once updated, your new password will take effect immediately across all active sessions."
           </p>
         </div>
-      </div>
-
-      {/* ── Right 50% Production Form Side ── */}
-      <div className="auth-split-form-panel">
+      </div><div className="auth-split-form-panel">
         <div className="auth-prod-form-wrapper">
           <div className="auth-prod-header">
             <div className="auth-mobile-logo" onClick={() => navigate("/")}>

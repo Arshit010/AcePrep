@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
-import ScrollToTopButton from "./ScrollToTopButton"; 
+import ScrollToTopButton from "./ScrollToTopButton";
 import SEO from "../components/SEO";
-import { HistorySkeleton } from "../components/Skeletons"; 
+import { HistorySkeleton } from "../components/Skeletons";
 
 const typeIcons = {
   video_topic: "videocam",
@@ -39,7 +39,6 @@ export default function History() {
     load();
   }, []);
 
-  
   const load = async () => {
     try {
       const res = await api.get("/interviews");
@@ -52,7 +51,6 @@ export default function History() {
     }
   };
 
-  
   const deleteInterview = async (id) => {
     try {
       await api.delete(`/interviews/${id}`);
@@ -71,7 +69,6 @@ export default function History() {
     }
   };
 
-  
   const openReport = (id) => {
     navigate(`/result/${id}`);
   };
@@ -85,7 +82,6 @@ export default function History() {
         description="Review your past AI mock interviews, scores, performance reports, and progress history on AcePrep."
       />
 
-      
       <div style={{ flex: 1 }}>
         <div className="history-header-row">
           <h1>Past Interviews</h1>
@@ -202,13 +198,11 @@ export default function History() {
         </div>
       </div>
 
-      
       <footer>
         <div className="f-logo">AcePrep</div>
         <p>© {new Date().getFullYear()} AcePrep. All rights reserved. • <span onClick={() => window.open("/privacy", "_blank")} style={{ cursor: "pointer", textDecoration: "underline" }}>Privacy Policy</span></p>
       </footer>
 
-      
       <ScrollToTopButton />
     </div>
   );

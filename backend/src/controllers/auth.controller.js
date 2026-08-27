@@ -5,8 +5,6 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendOtpEmail, sendResetPasswordEmail } from "../services/email.service.js";
 
-
-
 const generateAccessToken = (userOrId, version) => {
     const id = typeof userOrId === "object" ? (userOrId._id || userOrId.id) : userOrId;
     const tokenVersion = typeof userOrId === "object" ? userOrId.tokenVersion : version;
@@ -29,8 +27,6 @@ const generateRefreshToken = (userOrId, version) => {
     );
 };
 
-
-
 const cookieOptions = {
     httpOnly: true,
     secure: true,
@@ -46,29 +42,17 @@ const clearCookieOptions = {
     expires: new Date(0),
 };
 
-/**
- * Generate a random 6-digit numeric OTP.
- */
 function generateOtp() {
     return crypto.randomInt(100000, 999999).toString();
 }
 
-/**
- * Hash an OTP for safe storage (one-way, not reversible).
- */
 function hashOtp(otp) {
     return crypto.createHash("sha256").update(otp).digest("hex");
 }
 
-
 const MIN_PASSWORD_CHARS = 6;
 const MAX_PASSWORD_BYTES = 72;
 
-/**
- * Validates password constraints (minimum 6 characters, maximum 72 UTF-8 bytes).
- * Prevents Long Password Denial of Service (LPDoS) CPU exhaustion attacks and aligns
- * with bcrypt's effective input length boundary.
- */
 function validatePassword(password) {
     if (!password || typeof password !== "string") {
         return { valid: false, message: "Password is required" };
@@ -85,8 +69,6 @@ function validatePassword(password) {
     return { valid: true };
 }
 
-
-/* REGISTER — Step 1: Validate, generate OTP, send email */
 export const register = async(req, res) => {
     try {
         const name = req.body.name?.trim();
@@ -108,9 +90,6 @@ export const register = async(req, res) => {
         const otp = generateOtp();
         const hashedOtp = hashOtp(otp);
 
-        // Remove any previous pending entry for this email, then create a fresh one.
-        // This is more reliable than findOneAndUpdate+upsert which can race with
-        // MongoDB's unique index and throw E11000 in edge cases.
         await PendingUser.deleteMany({ email });
         await PendingUser.create({
             name,
@@ -120,7 +99,6 @@ export const register = async(req, res) => {
             otpExpires: new Date(Date.now() + 10 * 60 * 1000),
         });
 
-        // Send OTP email
         try {
             await sendOtpEmail(email, otp, name);
         } catch (emailErr) {
@@ -142,8 +120,6 @@ export const register = async(req, res) => {
     }
 };
 
-
-/* VERIFY OTP — Step 2: Verify code, create real user, return tokens */
 export const verifyOtp = async(req, res) => {
     try {
         const email = req.body.email?.toLowerCase().trim();
@@ -159,7 +135,6 @@ export const verifyOtp = async(req, res) => {
                 message: "No pending registration found. Please sign up again.",
             });
 
-        // Check OTP expiry
         if (pending.otpExpires < new Date()) {
             await PendingUser.deleteOne({ email });
             return res.status(400).json({
@@ -167,7 +142,6 @@ export const verifyOtp = async(req, res) => {
             });
         }
 
-        // Compare OTP
         const hashedInput = hashOtp(otp);
         if (hashedInput !== pending.otp) {
             return res.status(400).json({
@@ -175,14 +149,12 @@ export const verifyOtp = async(req, res) => {
             });
         }
 
-        // Double-check no user was created in the meantime
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             await PendingUser.deleteOne({ email });
             return res.status(400).json({ message: "Email already registered" });
         }
 
-        // Create the real user — the User pre-save hook will hash the password
         const user = await User.create({
             name: pending.name,
             email: pending.email,
@@ -190,7 +162,6 @@ export const verifyOtp = async(req, res) => {
             role: "user",
         });
 
-        // Clean up pending entry
         await PendingUser.deleteOne({ email });
 
         const accessToken = generateAccessToken(user);
@@ -207,7 +178,7 @@ export const verifyOtp = async(req, res) => {
         });
 
         res.status(201).json({
-            message: "Email verified — account created successfully",
+            message: "Email verified , account created successfully",
             user: {
                 id: user._id,
                 name: user.name,
@@ -222,8 +193,6 @@ export const verifyOtp = async(req, res) => {
     }
 };
 
-
-/* RESEND OTP — Generate a fresh code and re-send the email */
 export const resendOtp = async(req, res) => {
     try {
         const email = req.body.email?.toLowerCase().trim();
@@ -246,7 +215,7 @@ export const resendOtp = async(req, res) => {
             {
                 otp: hashedOtp,
                 otpExpires: new Date(Date.now() + 10 * 60 * 1000),
-                createdAt: new Date(), // reset TTL
+                createdAt: new Date(),
             }
         );
 
@@ -268,8 +237,6 @@ export const resendOtp = async(req, res) => {
         res.status(500).json({ message: "Failed to resend verification code" });
     }
 };
-
-
 
 export const login = async(req, res) => {
     try {
@@ -329,8 +296,6 @@ export const login = async(req, res) => {
     }
 };
 
-
-
 export const refreshToken = async(req, res) => {
     try {
         const token = req.cookies?.refreshToken;
@@ -377,8 +342,6 @@ export const refreshToken = async(req, res) => {
     }
 };
 
-
-
 export const logout = async(req, res) => {
     try {
         const userId = req.user?._id?.toString() || req.user?.id || req.body?.userId;
@@ -412,8 +375,6 @@ export const logout = async(req, res) => {
     }
 };
 
-
-
 export const forgotPassword = async(req, res) => {
     try {
         const email = req.body.email?.toLowerCase().trim();
@@ -426,7 +387,7 @@ export const forgotPassword = async(req, res) => {
         const user = await User.findOne({ email });
 
         if (!user) {
-            // Do not reveal that email does not exist
+
             return res.status(200).json({ message: genericMessage });
         }
 
@@ -463,8 +424,6 @@ export const forgotPassword = async(req, res) => {
         });
     }
 };
-
-
 
 export const resetPassword = async(req, res) => {
     try {
@@ -508,8 +467,6 @@ export const resetPassword = async(req, res) => {
         });
     }
 };
-
-
 
 export const getMe = async(req, res) => {
     try {

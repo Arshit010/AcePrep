@@ -1,7 +1,5 @@
 import axios from "axios";
 
-
-
 const API = axios.create({
     baseURL: import.meta.env.VITE_API_URL + "/api",
     withCredentials: true,
@@ -10,8 +8,6 @@ const API = axios.create({
     },
 });
 
-
-
 API.interceptors.request.use((req) => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -19,8 +15,6 @@ API.interceptors.request.use((req) => {
     }
     return req;
 });
-
-
 
 export const getMyResumes = () => API.get("/resume/my");
 

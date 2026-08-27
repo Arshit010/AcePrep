@@ -19,11 +19,6 @@ function isSimilar(q1, q2) {
     return a.includes(b.slice(0, 25)) || b.includes(a.slice(0, 25));
 }
 
-/**
- * Filter out questions that are too similar to previously asked ones.
- * @param {string[]} previousQuestions - Questions from past interviews (DB-sourced)
- * @param {string[]} questions - Newly generated questions
- */
 function filterDuplicates(previousQuestions, questions) {
     if (!previousQuestions.length) return questions;
     return questions.filter(q =>
@@ -36,10 +31,6 @@ function resolveTopicCoverage(topic) {
     return topicCoverageMap[normalized] || "core concepts, practical scenarios, debugging, design decisions, and real world tradeoffs";
 }
 
-/**
- * Generate a short random seed phrase to inject entropy into the prompt,
- * preventing the LLM from falling into the same generation pattern.
- */
 function randomSeedPhrase() {
     const angles = [
         "Focus on real-world debugging scenarios this time.",
@@ -58,7 +49,7 @@ function randomSeedPhrase() {
         "Focus on API design and integration patterns.",
         "Emphasize security awareness and best practices."
     ];
-    // Pick 2 random angles
+
     const shuffled = angles.sort(() => Math.random() - 0.5);
     return shuffled.slice(0, 2).join(" ");
 }
@@ -90,12 +81,6 @@ function createFallbackQuestions(subject, difficulty, count) {
     return [...(warmups[difficulty] || warmups.medium), ...deeper].slice(0, count);
 }
 
-/**
- * @param {string|object} input - topic string OR config object with mode, topic, topics, etc.
- * @param {string} difficulty - easy | medium | hard
- * @param {number} questionCount - how many questions to generate
- * @param {string[]} previousQuestions - questions from past interviews to avoid repeating
- */
 export const generateInterviewQuestions = async(input, difficulty = "medium", questionCount = 5, previousQuestions = []) => {
     try {
         const safeQuestionCount = Math.max(1, Math.min(Number(questionCount) || 5, 12));
@@ -182,7 +167,6 @@ Return ONLY JSON:
 ]
 `;
 
-        // Build an exclusion block from past questions so the AI avoids them
         const exclusionBlock = previousQuestions.length
             ? `\n\nDO NOT ask any of these previously asked questions (or anything too similar):\n${previousQuestions.map((q, i) => `${i + 1}. ${q}`).join("\n")}\n\nGenerate completely fresh questions that cover different angles and subtopics.`
             : "";
@@ -261,7 +245,6 @@ Ask questions relevant to this person specifically.${exclusionBlock}
 
         let parsed = JSON.parse(jsonMatch[0]).map(q => q.question);
 
-        // Safety net: filter out any duplicates that slipped through the prompt
         parsed = filterDuplicates(previousQuestions, parsed);
 
         if (parsed.length < safeQuestionCount) {

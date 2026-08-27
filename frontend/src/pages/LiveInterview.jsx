@@ -13,12 +13,11 @@ export default function LiveInterview() {
   const [current, setCurrent] = useState(0);
   const [answer, setAnswer] = useState("");
 
-  const [loading, setLoading] = useState(true);      
-  const [submitting, setSubmitting] = useState(false); 
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [showQuitPrompt, setShowQuitPrompt] = useState(false);
   const [quitting, setQuitting] = useState(false);
   const [error, setError] = useState("");
-
 
   useEffect(() => {
     const loadInterview = async () => {
@@ -56,7 +55,6 @@ export default function LiveInterview() {
     loadInterview();
   }, [id, navigate]);
 
-  // Auto-enter fullscreen when interview starts
   useEffect(() => {
     const enterFullscreen = () => {
       if (!document.fullscreenElement) {
@@ -127,7 +125,6 @@ export default function LiveInterview() {
     }
   };
 
-
   const submitAnswer = async () => {
     if (!answer.trim() || submitting) return;
 
@@ -155,8 +152,6 @@ export default function LiveInterview() {
       setSubmitting(false);
     }
   };
-
- 
 
   if (loading)
     return <InterviewSessionSkeleton />;

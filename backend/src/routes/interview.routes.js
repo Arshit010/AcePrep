@@ -30,7 +30,6 @@ import {
 
 const router = express.Router();
 
-// Middleware group for starting an AI interview session
 const startInterviewChain = [
     protect,
     ipAiMinLimiter,
@@ -44,12 +43,10 @@ const startInterviewChain = [
     idempotencyGuard
 ];
 
-// Start AI interviews
 router.post("/generate", ...startInterviewChain, generateInterview);
 router.post("/topic", ...startInterviewChain, startTopicInterview);
 router.post("/video-topic", ...startInterviewChain, startVideoTopicInterview);
 
-// Submit AI answer
 router.post(
     "/answer",
     protect,

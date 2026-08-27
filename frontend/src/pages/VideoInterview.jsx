@@ -65,7 +65,7 @@ export default function VideoInterview() {
   const [screenShieldActive, setScreenShieldActive] = useState(false);
 
   const currentQuestion = interview?.questions?.[current] || "";
-  const preferredGender = null; // use browser default voice; remove AI-specific voice styling
+  const preferredGender = null;
   const selectedVoice = useMemo(() => voices.find((voice) => voice.voiceURI === selectedVoiceURI) || null, [voices, selectedVoiceURI]);
   const fullTranscript = `${finalTranscript} ${interimTranscript}`.trim();
   const suspiciousActionsCount = suspiciousEvents.length;
@@ -159,8 +159,6 @@ export default function VideoInterview() {
     }
   }, [integrityScore, navigate]);
 
-  // Avoid forcing fullscreen on load because the browser prompt can cause blur events,
-  // stall startup, and make the interview feel broken on some machines.
   useEffect(() => {
     return () => {
       if (document.fullscreenElement) {
@@ -192,8 +190,7 @@ export default function VideoInterview() {
         setIntegrityScore(Number(data.integrityScore) || 100);
         setSuspiciousEvents(data.suspiciousEvents || []);
         setWarningMessage("");
-        
-        // Preserve timer state based on interview start time
+
         const totalDurationSeconds = (Number(data.durationMinutes) || 10) * 60;
         let remainingSeconds = totalDurationSeconds;
         if (data.createdAt) {
@@ -208,7 +205,6 @@ export default function VideoInterview() {
         const nextIndex = Math.min(answeredCount, Math.max(0, totalQuestions - 1));
         setCurrent(nextIndex);
 
-        // Restore draft answer if available in sessionStorage for this session and question
         const savedDraft = sessionStorage.getItem(`aceprep:video-interview:${id}:q:${nextIndex}:draft`);
         if (savedDraft) {
           setFinalTranscript(savedDraft);
@@ -285,8 +281,6 @@ export default function VideoInterview() {
           audio: true
         });
 
-        // If the effect was cleaned up while getUserMedia was pending,
-        // stop the stream immediately to prevent camera/mic from staying on.
         if (aborted) {
           mediaStream.getTracks().forEach((track) => track.stop());
           return;
@@ -331,7 +325,6 @@ export default function VideoInterview() {
     };
   }, []);
 
-  // Re-attach stream to the video element whenever it becomes available
   useEffect(() => {
     if (cameraReady && videoRef.current && streamRef.current) {
       attachStreamToVideo(streamRef.current, videoRef.current);
@@ -418,9 +411,7 @@ export default function VideoInterview() {
       setIsListening(true);
       setRecognitionStatus("Listening to your verbal answer...");
       lastSpeechRef.current = Date.now();
-      // NOTE: Do NOT cancel speechSynthesis here.
-      // The AI interviewer voice must be allowed to finish speaking
-      // even while the microphone is active.
+
     };
 
     recognition.onresult = (event) => {
@@ -553,10 +544,6 @@ export default function VideoInterview() {
     window.addEventListener("pointerdown", unlockVoice, { passive: true });
     window.addEventListener("keydown", unlockVoice);
 
-    // Auto-prime: attempt to unlock the voice engine immediately.
-    // The user has already clicked "Start Interview" on the previous page,
-    // which counts as a user gesture in most browsers, so speechSynthesis
-    // should be allowed without an additional click.
     unlockVoice();
 
     return () => {
@@ -658,7 +645,6 @@ export default function VideoInterview() {
       utterance.lang = voice.lang;
     }
 
-    // A slightly faster default helps the interviewer feel more natural and less hesitant.
     utterance.rate = 1.14;
     utterance.pitch = 0.99;
     utterance.volume = 1;
@@ -671,9 +657,6 @@ export default function VideoInterview() {
       window.speechSynthesis.cancel();
     }
 
-    // Chrome has a well-known bug where it silently pauses speechSynthesis
-    // utterances after roughly 15 seconds. To work around this, we set up a
-    // keep-alive interval that calls resume() while the utterance is active.
     let keepAliveInterval = null;
 
     const cleanUpKeepAlive = () => {
@@ -701,14 +684,12 @@ export default function VideoInterview() {
         activeUtteranceRef.current = null;
       }
 
-      // If speech fails before starting, remove spokenKey so it is not permanently blocked
       if (options.spokenKey && event.error !== "interrupted" && event.error !== "canceled") {
         try {
           sessionStorage.removeItem(options.spokenKey);
         } catch (_) {}
       }
 
-      // Never trigger onEnd when speech is canceled or interrupted intentionally
       if (
         event.error === "interrupted" ||
         event.error === "canceled" ||
@@ -725,13 +706,9 @@ export default function VideoInterview() {
       activeUtteranceRef.current = utterance;
       setIsSpeaking(true);
 
-      // Always resume before speaking — Chrome can leave synthesis in a
-      // paused state after cancel() or after the browser tab regains focus.
       window.speechSynthesis.resume?.();
       window.speechSynthesis.speak(utterance);
 
-      // Chrome keep-alive: periodically call resume() to prevent the
-      // ~15-second silent-pause bug from cutting off longer utterances.
       keepAliveInterval = window.setInterval(() => {
         if (!window.speechSynthesis.speaking) {
           cleanUpKeepAlive();
@@ -750,7 +727,7 @@ export default function VideoInterview() {
     const isAlreadySpoken = sessionStorage.getItem(spokenKey) === "true";
 
     if (isAlreadySpoken) {
-      // Question prompt was already introduced prior to browser refresh/resume. Do NOT speak again.
+
       return;
     }
 
@@ -772,7 +749,7 @@ export default function VideoInterview() {
       try {
         videoRef.current.pause();
       } catch (_) {
-        /* no-op */
+
       }
       videoRef.current.srcObject = null;
     }
@@ -841,7 +818,6 @@ export default function VideoInterview() {
           throw error;
         }
 
-        // Support older backend sessions that have not been restarted yet.
         await api.delete(`/interviews/${id}`);
       }
 
@@ -1093,7 +1069,7 @@ export default function VideoInterview() {
         </div>
       )}
 
-      {/* Top Header Navigation Bar */}
+      {}
       <header className="video-room-topbar">
         <div className="topbar-left">
           <div className="room-topic-badge">
@@ -1131,12 +1107,7 @@ export default function VideoInterview() {
             Quit
           </button>
         </div>
-      </header>
-
-      {/* Main Studio Area */}
-      <div className="video-room-main">
-        {/* Left Column: Webcam & AI Status */}
-        <aside className="video-left-studio">
+      </header><div className="video-room-main"><aside className="video-left-studio">
           <div className="video-camera-card">
             <div className="camera-header-overlay">
               <span className="camera-live-dot">
@@ -1168,7 +1139,7 @@ export default function VideoInterview() {
             </div>
           </div>
 
-          {/* AI Speaker State Card */}
+          {}
           {isSpeaking ? (
             <div className="ai-speaker-card active-speech">
               <div className="sound-wave-bars">
@@ -1189,7 +1160,7 @@ export default function VideoInterview() {
             </div>
           )}
 
-          {/* Telemetry Summary */}
+          {}
           <div className="studio-telemetry-box">
             <div className="telemetry-item">
               <span className="telemetry-label">Focus Areas</span>
@@ -1212,12 +1183,7 @@ export default function VideoInterview() {
               </div>
             </div>
           </div>
-        </aside>
-
-        {/* Right Column: Question & Real-Time Verbal Studio */}
-        <main className="video-right-studio">
-          {/* Active Question Box */}
-          <div className="active-question-card">
+        </aside><main className="video-right-studio"><div className="active-question-card">
             <div className="question-card-top">
               <span className="question-seq-pill">Question {current + 1} of {interview.questions.length}</span>
               <button
@@ -1236,10 +1202,7 @@ export default function VideoInterview() {
             <p className="active-question-hint">
               Speak your response clearly into your microphone. Your answer is transcribed in real time.
             </p>
-          </div>
-
-          {/* Live Verbal Response Capture */}
-          <div className="verbal-response-card">
+          </div><div className="verbal-response-card">
             <div className="verbal-response-header">
               <div className="verbal-status-badge">
                 <span className={`status-dot ${isListening ? "recording" : "paused"}`} />
@@ -1266,7 +1229,7 @@ export default function VideoInterview() {
               )}
             </div>
 
-            {/* Quick Feedback Flash Card */}
+            {}
             {(answerReaction || answerSummary || quickFeedback || feedbackHighlights.length > 0) && (
               <div className="feedback-flash-card">
                 {answerReaction && (
@@ -1299,7 +1262,7 @@ export default function VideoInterview() {
               </div>
             )}
 
-            {/* Control Actions Bar */}
+            {}
             <div className="verbal-action-bar">
               <div className="verbal-mic-controls">
                 {isListening ? (

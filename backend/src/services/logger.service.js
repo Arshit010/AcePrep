@@ -1,7 +1,4 @@
-/**
- * Sanitized logging service for security events, rate-limit hits, and AI metrics.
- * Redacts sensitive fields (passwords, tokens, resumes, private answers).
- */
+
 
 const REDACT_KEYS = ["password", "token", "accessToken", "refreshToken", "resetPasswordToken", "resume", "answers", "raw"];
 

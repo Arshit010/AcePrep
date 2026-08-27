@@ -13,7 +13,7 @@ const EXISTING_FEATURES = [
   { icon: "assessment", title: "Detailed Reports", desc: "Hiring verdicts, scores, strengths, weaknesses, and actionable improvement insights." },
   { icon: "lock", title: "Private & Secure", desc: "Your resume, responses, and personal data remain fully encrypted and private." },
   { icon: "videocam", title: "Video Mock Interviews", desc: "Face-to-face AI interviews with real-time video analysis and camera controls." },
-  { icon: "devices", title: "Practice Anywhere", desc: "Seamless experience across desktop, tablet, and mobile — interview on the go." },
+  { icon: "devices", title: "Practice Anywhere", desc: "Seamless experience across desktop, tablet, and mobile , interview on the go." },
 ];
 
 const FAANG = [
@@ -71,18 +71,18 @@ export default function Features() {
       <section className="page-hero">
         <div className="hero-glow" />
         <div className="hero-content">
-          <ParticleText 
-            text="Powerful Features" 
-            color="#ffffff" 
-            highlightColor="#a85560" 
+          <ParticleText
+            text="Powerful Features"
+            color="#ffffff"
+            highlightColor="#a85560"
             density={1}
             particleSize={1.8}
             scatter={240}
             idleDrift={0.9}
             pointerRepel={50}
-            fontSize="clamp(2.5rem, 5.5vw, 4.5rem)" 
+            fontSize="clamp(2.5rem, 5.5vw, 4.5rem)"
           />
-          <p className="hero-sub">Everything you need to ace your next interview — and what's coming next.</p>
+          <p className="hero-sub">Everything you need to ace your next interview , and what's coming next.</p>
         </div>
       </section>
 
@@ -124,10 +124,10 @@ export default function Features() {
               onMouseMove={handleCardMouseMove}
             >
               <div className="faang-logo-wrap">
-                <img 
-                  src={company.logo} 
-                  alt={`${company.name} logo`} 
-                  className={`faang-logo ${company.invert ? "logo-invert" : ""}`} 
+                <img
+                  src={company.logo}
+                  alt={`${company.name} logo`}
+                  className={`faang-logo ${company.invert ? "logo-invert" : ""}`}
                 />
               </div>
               <h3>{company.name}</h3>
@@ -136,10 +136,7 @@ export default function Features() {
             </div>
           ))}
         </div>
-      </section>
-
-      {/* ─── More Coming Soon ─── */}
-      <section className="lp-section">
+      </section><section className="lp-section">
         <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
           <div className="section-status-pill coming-pill">
             COMING SOON
@@ -169,7 +166,7 @@ export default function Features() {
       <div className="lp-cta">
         <div className="cta-glow" />
         <h2>Start Practicing Today</h2>
-        <p>Don't wait for new features — start acing interviews now with what's already available.</p>
+        <p>Don't wait for new features , start acing interviews now with what's already available.</p>
         <div className="hero-btns">
           {user ? (
             <button className="btn-animated" onClick={() => navigate("/dashboard")}>

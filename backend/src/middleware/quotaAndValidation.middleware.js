@@ -1,16 +1,10 @@
 import Interview from "../models/Interview.js";
 import logger from "../services/logger.service.js";
 
-/**
- * Middleware: All interviews are 100% free and unlimited.
- */
 export const checkMonthlyQuotaGuard = async (req, res, next) => {
   next();
 };
 
-/**
- * Middleware: Strips attempts to modify server-controlled sensitive fields in request body.
- */
 export const sanitizeSensitiveFields = (req, res, next) => {
   if (req.body && typeof req.body === "object") {
     const FORBIDDEN_FIELDS = [
@@ -29,9 +23,6 @@ export const sanitizeSensitiveFields = (req, res, next) => {
   next();
 };
 
-/**
- * Middleware: Validates interview request parameters and sanitizes string lengths.
- */
 export const validateInterviewInputs = (req, res, next) => {
   const {
     role,
@@ -45,7 +36,6 @@ export const validateInterviewInputs = (req, res, next) => {
     answer,
   } = req.body;
 
-  // Validate String Lengths & Enums
   if (role) {
     if (typeof role !== "string" || role.trim().length > 100) {
       return res.status(400).json({ message: "Role must be a string up to 100 characters." });

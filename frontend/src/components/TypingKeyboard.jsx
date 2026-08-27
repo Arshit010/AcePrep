@@ -230,38 +230,23 @@ export function TypingKeyboard({
           <div className="tk-keyboard__back tk-face" />
           <div className="tk-keyboard__right tk-face" />
           <div className="tk-keyboard__left tk-face" />
-          <div className="tk-keyboard__top tk-face">
-
-            {/* Row 1 */}
-            <div className="tk-keys">
+          <div className="tk-keyboard__top tk-face"><div className="tk-keys">
               <Key accent="b" />
               {Array.from({ length: 12 }).map((_, i) => <Key key={`r1-${i}`} />)}
               <Key size="w2" accent="b" />
-            </div>
-
-            {/* Row 2 */}
-            <div className="tk-keys">
+            </div><div className="tk-keys">
               <Key size="w2" accent="b" />
               {Array.from({ length: 12 }).map((_, i) => <Key key={`r2-${i}`} />)}
               <Key accent="b" />
-            </div>
-
-            {/* Row 3 */}
-            <div className="tk-keys">
+            </div><div className="tk-keys">
               <Key size="w3" accent="b" />
               {Array.from({ length: 10 }).map((_, i) => <Key key={`r3-${i}`} />)}
               <Key size="w2" accent="o" />
-            </div>
-
-            {/* Row 4 */}
-            <div className="tk-keys">
+            </div><div className="tk-keys">
               <Key size="w2" accent="b" />
               {Array.from({ length: 11 }).map((_, i) => <Key key={`r4-${i}`} />)}
               <Key size="w3" accent="b" />
-            </div>
-
-            {/* Row 5 */}
-            <div className="tk-keys">
+            </div><div className="tk-keys">
               <Key accent="b" />
               <Key accent="o" />
               {Array.from({ length: 2 }).map((_, i) => <Key key={`r5a-${i}`} accent="b" />)}

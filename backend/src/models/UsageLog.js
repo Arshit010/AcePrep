@@ -50,7 +50,6 @@ const usageLogSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-// Compound index for monthly quota querying
 usageLogSchema.index({ user: 1, requestType: 1, timestamp: -1 });
 
 const UsageLog = mongoose.models.UsageLog || mongoose.model("UsageLog", usageLogSchema);

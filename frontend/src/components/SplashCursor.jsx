@@ -33,7 +33,6 @@ function SplashCursor({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Track if the effect is still active for cleanup
     let isActive = true;
 
     function pointerPrototype() {
@@ -987,7 +986,6 @@ function SplashCursor({
       return hash;
     }
 
-    // Named event handlers for proper cleanup
     function handleMouseDown(e) {
       let pointer = pointers[0];
       let posX = scaleByPixelRatio(e.clientX);
@@ -1038,7 +1036,6 @@ function SplashCursor({
       }
     }
 
-    // Add event listeners
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('touchstart', handleTouchStart);
@@ -1047,24 +1044,21 @@ function SplashCursor({
 
     updateFrame();
 
-    // Cleanup function
     return () => {
       isActive = false;
 
-      // Cancel animation frame
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
         animationFrameId.current = null;
       }
 
-      // Remove event listeners
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   if (isMobile) return null;

@@ -3,15 +3,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0,1');
 :root {
     --bg: #080709;
-    /* Level 0: Deep Obsidian Void Black */
+
     --surface: #100f12;
-    /* Level 1: Onyx Surface (Navbars & Sections) */
+
     --surface2: #19181c;
-    /* Level 2: Charcoal Elevation (Cards & Containers) */
+
     --surface3: #222126;
-    /* Level 3: Dark Graphite (Modals & Hover States) */
+
     --surface4: #2b2a30;
-    /* Level 4: Highlighted Hover Elevation */
+
     --border: rgba(255, 255, 255, 0.08);
     --border-hover: rgba(168, 85, 96, 0.45);
     --accent: #7D4047;
@@ -92,9 +92,6 @@ h6 {
     box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-
-/* ─── Production 50/50 Split Auth Page ─── */
-
 .auth-split-page {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -103,9 +100,6 @@ h6 {
     background: #080709;
     overflow-x: hidden;
 }
-
-
-/* Left Showcase Panel (50%) */
 
 .auth-split-showcase {
     position: relative;
@@ -204,9 +198,6 @@ h6 {
     font-style: italic;
     font-weight: 400;
 }
-
-
-/* Right Form Panel (50%) */
 
 .auth-split-form-panel {
     display: flex;
@@ -403,9 +394,6 @@ h6 {
 .auth-prod-back .material-symbols-outlined {
     font-size: 18px;
 }
-
-
-/* Mobile & Tablet Responsiveness */
 
 @media (max-width: 1024px) {
     .auth-split-page {
@@ -849,9 +837,6 @@ h6 {
     user-select: none;
     transition: color 0.3s ease, text-shadow 0.3s ease;
 }
-
-
-/* ===== ENHANCED STEP NUMBER GLOW ON HOVER ===== */
 
 .hiw-card:hover .hiw-step {
     color: rgba(125, 64, 71, 0.55);
@@ -1693,7 +1678,6 @@ footer .f-tag {
     font-size: 0.9rem;
 }
 
-/* ─── Resume Progress Bar ─── */
 .resume-progress-container {
     width: 100%;
     margin-top: 1.25rem;
@@ -1749,7 +1733,6 @@ footer .f-tag {
     box-shadow: 0 0 12px rgba(168, 85, 96, 0.5);
 }
 
-/* ─── Skeleton Loaders & Shimmer Effects ─── */
 .skeleton-block {
     background: linear-gradient(
         90deg,
@@ -1789,7 +1772,6 @@ footer .f-tag {
     }
 }
 
-/* Reduced Motion Accessibility Fallback */
 @media (prefers-reduced-motion: reduce) {
     .skeleton-block {
         animation: skeletonPulse 2s ease-in-out infinite;
@@ -2123,8 +2105,6 @@ footer .f-tag {
     box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-
-
 .topic-subtitle {
     text-align: center;
     color: var(--text-secondary);
@@ -2285,7 +2265,6 @@ footer .f-tag {
     min-height: 150px;
 }
 
-/* ─── MODERN VIDEO INTERVIEW STUDIO ─── */
 .video-interview-shell {
     max-width: 1400px;
     margin: 0 auto;
@@ -2297,7 +2276,6 @@ footer .f-tag {
     box-sizing: border-box;
 }
 
-/* Top Header Bar */
 .video-room-topbar {
     display: flex;
     justify-content: space-between;
@@ -2415,7 +2393,6 @@ footer .f-tag {
     font-size: 1.05rem;
 }
 
-/* Main Studio Layout */
 .video-room-main {
     display: grid;
     grid-template-columns: 380px minmax(0, 1fr);
@@ -2424,7 +2401,6 @@ footer .f-tag {
     align-items: start;
 }
 
-/* Left Studio Column */
 .video-left-studio {
     display: flex;
     flex-direction: column;
@@ -2527,7 +2503,6 @@ footer .f-tag {
     margin-bottom: 0.6rem;
 }
 
-/* AI Speaker Banner */
 .ai-speaker-card {
     display: flex;
     align-items: center;
@@ -2592,7 +2567,6 @@ footer .f-tag {
     font-size: 0.82rem;
 }
 
-/* Telemetry Box */
 .studio-telemetry-box {
     padding: 1.1rem;
     border-radius: var(--radius-lg);
@@ -2652,7 +2626,6 @@ footer .f-tag {
     color: #ef4444 !important;
 }
 
-/* Right Studio Column */
 .video-right-studio {
     display: flex;
     flex-direction: column;
@@ -2722,7 +2695,6 @@ footer .f-tag {
     margin: 0;
 }
 
-/* Verbal Response Card */
 .verbal-response-card {
     padding: 1.4rem 1.65rem;
     border-radius: var(--radius-xl);
@@ -2790,7 +2762,6 @@ footer .f-tag {
     font-size: 0.98rem;
 }
 
-/* Distinct Color-Coded Flash Feedback Card */
 .feedback-flash-card {
     padding: 1.25rem 1.4rem;
     border-radius: var(--radius-lg);
@@ -2819,7 +2790,7 @@ footer .f-tag {
 .tag-summary,
 .tag-feedback,
 .tag-coaching {
-    color: #fda4af !important; /* Soft Blush Rose Pink */
+    color: #fda4af !important;
 }
 
 .tag-coaching {
@@ -2851,7 +2822,6 @@ footer .f-tag {
     margin-right: 0.3rem;
 }
 
-/* Control Actions Bar */
 .verbal-action-bar {
     display: flex;
     justify-content: space-between;
@@ -3616,11 +3586,6 @@ footer .material-symbols-outlined {
     box-shadow: 0 12px 25px rgba(125, 64, 71, 0.6);
 }
 
-
-/* ================================================
-   LANDING PAGE STYLES
-   ================================================ */
-
 :root {
     --lp-bg: #080709;
     --lp-surface: #100f12;
@@ -3894,9 +3859,6 @@ footer .material-symbols-outlined {
     transform: translateY(-2px);
 }
 
-
-/* ===== ANIMATED SHINE BUTTON ===== */
-
 .btn-animated {
     position: relative;
     display: inline-flex;
@@ -3965,9 +3927,6 @@ footer .material-symbols-outlined {
         background-position: 0% 0%;
     }
 }
-
-
-/* ===== LIVE BADGE & SECTION PILLS ===== */
 
 .section-status-pill {
     display: inline-flex;
@@ -4094,9 +4053,6 @@ footer .material-symbols-outlined {
     max-width: 420px;
 }
 
-
-/* ── Landing Page Card Base & Animated Transitions ── */
-
 .action-card,
 .step-card,
 .feature-card {
@@ -4111,9 +4067,6 @@ footer .material-symbols-outlined {
     will-change: transform, box-shadow, border-color;
     transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1), background 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-
-/* Interactive Cursor Spotlight Glow for Cards */
 
 .action-card::before,
 .step-card::before,
@@ -4144,9 +4097,6 @@ footer .material-symbols-outlined {
 .privacy-highlight-card::before {
     display: none !important;
 }
-
-
-/* Card Hover Animated State */
 
 .action-card:hover,
 .step-card:hover,
@@ -4263,9 +4213,6 @@ footer .material-symbols-outlined {
     padding: 32px 28px;
 }
 
-
-/* ── Scroll Reveal Animated Transitions ── */
-
 .scroll-reveal,
 .scroll-reveal-right,
 .scroll-reveal-up {
@@ -4296,9 +4243,6 @@ footer .material-symbols-outlined {
     z-index: 1;
     transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), color 0.5s cubic-bezier(0.16, 1, 0.3, 1), text-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-
-/* LANDING PAGE STEP NUMBER GLOW */
 
 .step-card:hover .step-number {
     transform: translateY(-6px) scale(1.06);
@@ -4423,9 +4367,6 @@ footer .material-symbols-outlined {
     margin-bottom: 36px;
 }
 
-
-/* ── Page Hero (for subpages) ── */
-
 .page-hero {
     position: relative;
     padding: 160px 48px 80px;
@@ -4451,9 +4392,6 @@ footer .material-symbols-outlined {
     max-width: 560px;
     margin: 0 auto;
 }
-
-
-/* ── FAQ Section (Smooth Hover Reveal) ── */
 
 .faq-list {
     max-width: 760px;
@@ -4541,9 +4479,6 @@ footer .material-symbols-outlined {
     pointer-events: auto;
 }
 
-
-/* ── Section Subtitle ── */
-
 .section-sub {
     color: var(--lp-muted);
     font-size: 1.05rem;
@@ -4552,9 +4487,6 @@ footer .material-symbols-outlined {
     margin: -16px auto 40px;
     text-align: center;
 }
-
-
-/* ===== FAANG COMING SOON ===== */
 
 .lp-faang {
     text-align: center;
@@ -4659,9 +4591,6 @@ footer .material-symbols-outlined {
     width: fit-content !important;
 }
 
-
-/* ===== ABOUT US ===== */
-
 .about-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -4732,9 +4661,6 @@ footer .material-symbols-outlined {
     line-height: 1.6;
     margin: 0;
 }
-
-
-/* ===== CONTACT US ===== */
 
 .contact-grid {
     display: grid;
@@ -5136,14 +5062,6 @@ footer .material-symbols-outlined {
     }
 }
 
-
-/* ================================================
-   UI ENHANCEMENT STYLES
-   ================================================ */
-
-
-/* ===== AUTH ENHANCEMENTS ===== */
-
 .auth-brand-icon {
     width: 56px;
     height: 56px;
@@ -5290,9 +5208,6 @@ footer .material-symbols-outlined {
     font-size: 1rem;
 }
 
-
-/* ===== PASSWORD STRENGTH ===== */
-
 .password-strength {
     display: flex;
     align-items: center;
@@ -5343,9 +5258,6 @@ footer .material-symbols-outlined {
 .password-strength-label.strength-3 {
     color: #7D4047;
 }
-
-
-/* ===== OTP VERIFICATION ===== */
 
 .otp-input-group {
     display: flex;
@@ -5452,9 +5364,6 @@ footer .material-symbols-outlined {
     }
 }
 
-
-/* ===== DASHBOARD QUICK STATS ===== */
-
 .db-quick-stats {
     display: flex;
     gap: 0.9rem;
@@ -5496,9 +5405,6 @@ footer .material-symbols-outlined {
     letter-spacing: 0.04em;
 }
 
-
-/* ===== DASHBOARD ACTION ICON WRAP ===== */
-
 .db-action-icon-wrap {
     width: 48px;
     height: 48px;
@@ -5524,15 +5430,9 @@ footer .material-symbols-outlined {
     transform: scale(1.05);
 }
 
-
-/* ===== DASHBOARD ACTION CARD STAGGER ===== */
-
 .db-action-card {
     animation: fadeSlideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
-
-
-/* ===== HISTORY ENHANCEMENTS ===== */
 
 .history-header-row {
     display: flex;
@@ -5738,9 +5638,6 @@ footer .material-symbols-outlined {
     margin-bottom: 1rem;
 }
 
-
-/* ===== INTERVIEW RESULT SCORE RINGS ===== */
-
 .score-ring-grid {
     display: flex;
     flex-wrap: wrap;
@@ -5790,9 +5687,6 @@ footer .material-symbols-outlined {
     letter-spacing: 0.04em;
 }
 
-
-/* ===== REPORT HERO ===== */
-
 .report-hero {
     text-align: center;
     padding: 2rem;
@@ -5823,9 +5717,6 @@ footer .material-symbols-outlined {
     color: var(--muted);
     font-size: 0.9rem;
 }
-
-
-/* ===== COLLAPSIBLE Q&A ===== */
 
 .report-qa-section {
     margin-top: 1.5rem;
@@ -5957,7 +5848,6 @@ footer .material-symbols-outlined {
     font-size: 0.85rem;
 }
 
-/* ===== RESTRUCTURED REPORT DESIGN ===== */
 .report-summary-card {
     padding: 1.5rem 1.75rem;
     border-radius: var(--radius-xl);
@@ -6057,7 +5947,6 @@ footer .material-symbols-outlined {
     font-size: 0.92rem;
 }
 
-/* Unified Executive Insights Section (Side-by-Side Clean Layout) */
 .report-insights-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -6157,7 +6046,6 @@ footer .material-symbols-outlined {
     padding: 0.4rem 0;
 }
 
-/* Integrity Events Card */
 .report-integrity-card {
     padding: 1.35rem 1.6rem;
     border-radius: var(--radius-xl);
@@ -6216,9 +6104,6 @@ footer .material-symbols-outlined {
     font-size: 1rem !important;
 }
 
-
-/* ===== VIDEO INTERVIEW ENHANCEMENTS ===== */
-
 .video-progress-label {
     font-size: 0.82rem;
     color: var(--muted);
@@ -6246,9 +6131,6 @@ footer .material-symbols-outlined {
         opacity: 0.6;
     }
 }
-
-
-/* AI Speaking Indicator */
 
 .ai-speaking-dot {
     width: 8px;
@@ -6338,9 +6220,6 @@ footer .material-symbols-outlined {
     }
 }
 
-
-/* ===== LOADER ROTATING MSG ===== */
-
 .loader-rotating-msg {
     margin-top: 0.8rem;
     color: var(--accent);
@@ -6358,9 +6237,6 @@ footer .material-symbols-outlined {
         opacity: 1;
     }
 }
-
-
-/* ===== RESPONSIVE ADDITIONS ===== */
 
 @media (max-width: 768px) {
     .history-header-row {
@@ -6392,9 +6268,6 @@ footer .material-symbols-outlined {
         gap: 0.3rem;
     }
 }
-
-
-/* ===== DASHBOARD HERO UPGRADED ===== */
 
 .db-hero-upgraded {
     display: grid;
@@ -6528,9 +6401,6 @@ footer .material-symbols-outlined {
     padding-top: 20px;
 }
 
-
-/* ===== DASHBOARD ACTION GRID ===== */
-
 .db-action-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -6588,9 +6458,6 @@ footer .material-symbols-outlined {
     flex: 1;
 }
 
-
-/* ===== DASHBOARD RETURN GRID ===== */
-
 .db-return-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -6639,9 +6506,6 @@ footer .material-symbols-outlined {
     line-height: 1.65;
 }
 
-
-/* ===== RESPONSIVE DASHBOARD ===== */
-
 @media (max-width: 1024px) {
     .db-hero-upgraded {
         grid-template-columns: 1fr;
@@ -6675,9 +6539,6 @@ footer .material-symbols-outlined {
         grid-template-columns: 1fr;
     }
 }
-
-
-/* ─── Privacy Policy & AI Security Page Styles (No Boxes Layout) ─── */
 
 .privacy-meta-badge {
     display: inline-flex;
@@ -6891,9 +6752,6 @@ footer .material-symbols-outlined {
     color: var(--lp-text);
 }
 
-
-/* ─── Comprehensive Multi-Device Responsiveness (Mobile & Tablet) ─── */
-
 @media (max-width: 1024px) {
     .lp-nav {
         padding: 16px 32px;
@@ -7084,9 +6942,6 @@ footer .material-symbols-outlined {
         height: 70px;
     }
 }
-
-
-/* ===== 404 NOT FOUND PAGE STYLES ===== */
 
 .not-found-page {
     height: 100vh;

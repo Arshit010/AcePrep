@@ -75,7 +75,6 @@ export default function InterviewResult() {
   const [isNotFound, setIsNotFound] = useState(false);
   const [error, setError] = useState("");
 
-  // Safety net: stop any lingering camera/mic streams from the video interview
   useEffect(() => {
     try {
       const videoElements = document.querySelectorAll("video");
@@ -86,7 +85,7 @@ export default function InterviewResult() {
         }
       });
     } catch (_) {
-      /* no-op */
+
     }
     window.speechSynthesis?.cancel();
   }, []);
@@ -155,7 +154,7 @@ export default function InterviewResult() {
           <span className="material-symbols-outlined">info</span>
           <h3>Session Details</h3>
         </div>
-        
+
         <div className="report-detail-tiles">
           <div className="detail-tile">
             <span className="material-symbols-outlined detail-tile-icon">videocam</span>
@@ -330,7 +329,7 @@ export default function InterviewResult() {
                   timeStr = new Date(isoMatch[1]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                   messageText = isoMatch[2];
                 } catch (_) {
-                  /* fallback */
+
                 }
               }
               return (

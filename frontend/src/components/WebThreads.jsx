@@ -56,7 +56,6 @@ void main() {
   vec2 uv = gl_FragCoord.xy / iResolution.xy;
   float n = max(uThreadCount, 1.0);
 
-  // Smooth 2D focal pinch tracking
   float pinchX = uFanMode < 0.5 ? 0.5 : (uFanMode < 1.5 ? 0.0 : 1.0);
   float pinchY = uPosition;
   if (uEnableMouse > 0.5) {
@@ -65,7 +64,6 @@ void main() {
     pinchY = mix(pinchY, uMouse.y, mStr);
   }
 
-  // C1-continuous smooth pinch envelope math (eliminates sharp V-kinks on hover)
   float dx = uv.x - pinchX;
   float smoothDx = (dx * dx) / (abs(dx) + 0.035);
   float spreadDx = uSpread * smoothDx;
@@ -73,9 +71,8 @@ void main() {
   float baseT = iTime * uSpeed;
   float tauOverN = TAU / n;
 
-  // Smooth cubic mirror phase transition (eliminates sharp phase step jump on hover)
   float mirror = uMirror > 0.5 ? smoothstep(-0.2, 0.2, pinchX - uv.x) * 2.0 - 1.0 : 1.0;
-  
+
   bool doShimmer = uShimmer > 0.5;
   float shimmerT = iTime * 1.7;
   float invThickness = 1.0 / max(uThickness, 0.01);

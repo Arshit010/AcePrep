@@ -20,20 +20,14 @@ export default function NotFound() {
       <Navbar showAuthButtons={false} showNavLinks={false} />
 
       <div className="not-found-container">
-        <div className="not-found-glow" />
-
-        {/* 404 Robot Image Container */}
-        <div className="not-found-image-wrap">
+        <div className="not-found-glow" /><div className="not-found-image-wrap">
           <div className="robot-aura" />
           <img
             src={robotImg}
             alt="404 Lost Robot"
             className="not-found-robot-img"
           />
-        </div>
-
-        {/* 404 Text Content */}
-        <div className="not-found-content">
+        </div><div className="not-found-content">
           <h1 className="not-found-title">
             PAGE NOT <span className="not-found-red">FOUND</span>
           </h1>
