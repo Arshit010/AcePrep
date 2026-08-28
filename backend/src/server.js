@@ -43,7 +43,8 @@ app.use(
         },
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization", "X-Idempotency-Key", "idempotency-key", "X-AcePrep-Client", "x-aceprep-client"],
+        allowedHeaders: ["Content-Type", "Authorization", "X-Idempotency-Key", "idempotency-key", "X-AcePrep-Client", "x-aceprep-client", "X-Refresh-Token", "x-refresh-token"],
+        exposedHeaders: ["X-Access-Token"],
     })
 );
 

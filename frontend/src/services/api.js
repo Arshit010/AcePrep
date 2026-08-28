@@ -5,6 +5,29 @@ const baseURL =
     `${import.meta.env.VITE_API_URL}/api` :
     "http://localhost:5001/api";
 
+const TOKEN_KEYS = {
+    access: "aceprep_at",
+    refresh: "aceprep_rt",
+};
+
+function getStoredToken(key) {
+    try { return localStorage.getItem(key); } catch { return null; }
+}
+
+function setStoredToken(key, value) {
+    try {
+        if (value) localStorage.setItem(key, value);
+        else localStorage.removeItem(key);
+    } catch {}
+}
+
+function clearStoredTokens() {
+    try {
+        localStorage.removeItem(TOKEN_KEYS.access);
+        localStorage.removeItem(TOKEN_KEYS.refresh);
+    } catch {}
+}
+
 const API = axios.create({
     baseURL,
     withCredentials: true,
@@ -23,10 +46,11 @@ export const resetLogoutState = () => {
 };
 
 function triggerLogout(reason = "Session expired") {
-    console.warn("🔒 Logout:", reason);
+    console.warn("\u{1F512} Logout:", reason);
 
     isLoggedOut = true;
 
+    clearStoredTokens();
     sessionStorage.clear();
     window.dispatchEvent(new Event("auth-logout"));
 }
@@ -38,8 +62,43 @@ const processQueue = (error) => {
     failedQueue = [];
 };
 
+API.interceptors.request.use((config) => {
+    const token = getStoredToken(TOKEN_KEYS.access);
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
 API.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        const data = response.data;
+        const url = response.config?.url || "";
+
+        if (data && typeof data === "object") {
+            if (data.accessToken) {
+                setStoredToken(TOKEN_KEYS.access, data.accessToken);
+            }
+            if (data.refreshToken) {
+                setStoredToken(TOKEN_KEYS.refresh, data.refreshToken);
+            }
+        }
+
+        const headerAccessToken = response.headers["x-access-token"];
+        if (headerAccessToken) {
+            setStoredToken(TOKEN_KEYS.access, headerAccessToken);
+        }
+
+        if (url.includes("/auth/login") || url.includes("/auth/verify-otp")) {
+            isLoggedOut = false;
+        }
+
+        if (url.includes("/auth/logout")) {
+            clearStoredTokens();
+        }
+
+        return response;
+    },
 
     async(error) => {
         const originalRequest = error.config;
@@ -55,7 +114,6 @@ API.interceptors.response.use(
             url.includes("/auth/verify-otp") ||
             url.includes("/auth/resend-otp") ||
             url.includes("/auth/refresh") ||
-            url.includes("/auth/me") ||
             url.includes("/auth/logout") ||
             url.includes("/auth/forgot-password") ||
             url.includes("/auth/reset")
@@ -82,6 +140,11 @@ API.interceptors.response.use(
             !originalRequest._retry &&
             !isLoggedOut
         ) {
+            const storedRefresh = getStoredToken(TOKEN_KEYS.refresh);
+            if (!storedRefresh) {
+                return Promise.reject(error);
+            }
+
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
@@ -92,7 +155,9 @@ API.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                await API.post("/auth/refresh");
+                await API.post("/auth/refresh", null, {
+                    headers: { "X-Refresh-Token": storedRefresh },
+                });
 
                 processQueue(null);
                 return API(originalRequest);

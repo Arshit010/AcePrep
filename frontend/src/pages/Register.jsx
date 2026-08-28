@@ -53,6 +53,7 @@ export default function Register() {
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const otpInputRefs = useRef([]);
+  const verifyingRef = useRef(false);
   const strength = useMemo(() => getPasswordStrength(password), [password]);
 
   useEffect(() => {
@@ -142,6 +143,7 @@ export default function Register() {
 
   const handleVerifyOtp = async (e) => {
     if (e) e.preventDefault();
+    if (verifyingRef.current) return;
     const otp = otpDigits.join("");
     if (otp.length < OTP_LENGTH) {
       setError("Please enter the complete 6-digit code");
@@ -150,6 +152,7 @@ export default function Register() {
 
     setError("");
     setSuccess("");
+    verifyingRef.current = true;
     setVerifying(true);
 
     try {
@@ -164,6 +167,7 @@ export default function Register() {
       setOtpDigits(Array(OTP_LENGTH).fill(""));
       setTimeout(() => focusOtpInput(0), 100);
     } finally {
+      verifyingRef.current = false;
       setVerifying(false);
     }
   };

@@ -3,7 +3,10 @@ import User from "../models/User.js";
 
 export const protect = async(req, res, next) => {
     try {
-        const accessToken = req.cookies.accessToken;
+        const authHeader = req.headers.authorization;
+        const accessToken = (authHeader && authHeader.startsWith("Bearer "))
+            ? authHeader.slice(7)
+            : req.cookies.accessToken;
 
         if (accessToken) {
             try {
@@ -36,7 +39,7 @@ export const protect = async(req, res, next) => {
             }
         }
 
-        const refreshToken = req.cookies.refreshToken;
+        const refreshToken = req.headers["x-refresh-token"] || req.cookies.refreshToken;
 
         if (!refreshToken) {
             return res.status(401).json({ message: "Session expired" });
@@ -73,6 +76,8 @@ export const protect = async(req, res, next) => {
                 maxAge: 15 * 60 * 1000,
             });
 
+            res.setHeader("X-Access-Token", newAccessToken);
+
             req.user = {
                 id: user._id.toString(),
                 _id: user._id,
@@ -91,4 +96,3 @@ export const protect = async(req, res, next) => {
         return res.status(401).json({ message: "Not authorized" });
     }
 };
-

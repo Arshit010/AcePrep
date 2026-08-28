@@ -185,6 +185,8 @@ export const verifyOtp = async(req, res) => {
                 email: user.email,
                 role: user.role,
             },
+            accessToken,
+            refreshToken,
         });
 
     } catch (error) {
@@ -288,6 +290,8 @@ export const login = async(req, res) => {
                 email: user.email,
                 role: user.role,
             },
+            accessToken,
+            refreshToken,
         });
 
     } catch (error) {
@@ -298,7 +302,7 @@ export const login = async(req, res) => {
 
 export const refreshToken = async(req, res) => {
     try {
-        const token = req.cookies?.refreshToken;
+        const token = req.headers["x-refresh-token"] || req.cookies?.refreshToken;
 
         if (!token)
             return res.status(401).json({
@@ -333,6 +337,7 @@ export const refreshToken = async(req, res) => {
 
         res.status(200).json({
             message: "Access token refreshed",
+            accessToken: newAccessToken,
         });
 
     } catch (error) {
@@ -344,20 +349,33 @@ export const refreshToken = async(req, res) => {
 
 export const logout = async(req, res) => {
     try {
-        const userId = req.user?._id?.toString() || req.user?.id || req.body?.userId;
+        let userId = req.user?._id?.toString() || req.user?.id || req.body?.userId;
+
+        if (!userId) {
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader.startsWith("Bearer ")) {
+                try {
+                    const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_ACCESS_SECRET);
+                    if (decoded?.id) userId = decoded.id;
+                } catch (ignore) {}
+            }
+        }
+
+        if (!userId) {
+            const rt = req.headers["x-refresh-token"] || req.cookies?.refreshToken;
+            if (rt) {
+                try {
+                    const decodedRefresh = jwt.verify(
+                        rt,
+                        process.env.JWT_REFRESH_SECRET
+                    );
+                    if (decodedRefresh?.id) userId = decodedRefresh.id;
+                } catch (ignore) {}
+            }
+        }
 
         if (userId) {
             await User.findByIdAndUpdate(userId, { $inc: { tokenVersion: 1 } });
-        } else if (req.cookies?.refreshToken) {
-            try {
-                const decodedRefresh = jwt.verify(
-                    req.cookies.refreshToken,
-                    process.env.JWT_REFRESH_SECRET
-                );
-                if (decodedRefresh?.id) {
-                    await User.findByIdAndUpdate(decodedRefresh.id, { $inc: { tokenVersion: 1 } });
-                }
-            } catch (ignore) {}
         }
 
         res.clearCookie("accessToken", clearCookieOptions);
