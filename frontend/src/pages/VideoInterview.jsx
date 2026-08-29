@@ -1205,15 +1205,36 @@ export default function VideoInterview() {
           </div><div className="verbal-response-card">
             <div className="verbal-response-header">
               <div className="verbal-status-badge">
-                <span className={`status-dot ${isListening ? "recording" : "paused"}`} />
-                <span>{isListening ? "Recording Verbal Answer..." : "Microphone Paused"}</span>
+                {recognitionSupported ? (
+                  <>
+                    <span className={`status-dot ${isListening ? "recording" : "paused"}`} />
+                    <span>{isListening ? "Recording Verbal Answer..." : "Microphone Paused"}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="status-dot paused" />
+                    <span>Written Response Area</span>
+                  </>
+                )}
               </div>
             </div>
 
             <div className="verbal-transcript-container">
               {!recognitionSupported ? (
-                <div className="transcript-placeholder-msg">
-                  Speech recognition is not supported in this browser. Please use Chrome for speech interviewing.
+                <div className="verbal-fallback-container">
+                  <div className="browser-speech-notice">
+                    <span className="material-symbols-outlined">info</span>
+                    <span>
+                      Real-time voice recognition is optimized for Chrome, Safari & Edge. In Firefox, type your answer below or use Chrome for live speech transcription. Full camera and AI audio responses remain active.
+                    </span>
+                  </div>
+                  <textarea
+                    className="verbal-transcript-input"
+                    placeholder="Type your detailed response to this interview question..."
+                    value={finalTranscript}
+                    onChange={(e) => setFinalTranscript(e.target.value)}
+                    disabled={submitting}
+                  />
                 </div>
               ) : fullTranscript ? (
                 <div className="transcript-live-text">
@@ -1265,26 +1286,33 @@ export default function VideoInterview() {
             {}
             <div className="verbal-action-bar">
               <div className="verbal-mic-controls">
-                {isListening ? (
-                  <button
-                    type="button"
-                    className="mic-control-btn recording"
-                    onClick={stopListening}
-                    disabled={submitting}
-                  >
-                    <span className="material-symbols-outlined">pause_circle</span>
-                    Pause Mic
-                  </button>
+                {recognitionSupported ? (
+                  isListening ? (
+                    <button
+                      type="button"
+                      className="mic-control-btn recording"
+                      onClick={stopListening}
+                      disabled={submitting}
+                    >
+                      <span className="material-symbols-outlined">pause_circle</span>
+                      Pause Mic
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="mic-control-btn ready"
+                      onClick={startListening}
+                      disabled={submitting}
+                    >
+                      <span className="material-symbols-outlined">mic</span>
+                      Start Speaking
+                    </button>
+                  )
                 ) : (
-                  <button
-                    type="button"
-                    className="mic-control-btn ready"
-                    onClick={startListening}
-                    disabled={!recognitionSupported || submitting}
-                  >
-                    <span className="material-symbols-outlined">mic</span>
-                    Start Speaking
-                  </button>
+                  <div className="verbal-input-mode-pill">
+                    <span className="material-symbols-outlined">edit_note</span>
+                    <span>Text Mode</span>
+                  </div>
                 )}
 
                 <button
@@ -1292,7 +1320,7 @@ export default function VideoInterview() {
                   className="mic-sub-btn"
                   onClick={clearTranscript}
                   disabled={!fullTranscript || submitting}
-                  title="Clear Transcript"
+                  title="Clear Answer"
                 >
                   <span className="material-symbols-outlined">backspace</span>
                   Clear

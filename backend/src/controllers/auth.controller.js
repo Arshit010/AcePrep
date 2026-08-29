@@ -130,10 +130,18 @@ export const verifyOtp = async(req, res) => {
 
         const pending = await PendingUser.findOne({ email });
 
-        if (!pending)
+        if (!pending) {
+            const alreadyRegistered = await User.findOne({ email });
+            if (alreadyRegistered) {
+                return res.status(400).json({
+                    message: "Email is already verified and registered. Please sign in.",
+                    alreadyRegistered: true,
+                });
+            }
             return res.status(400).json({
                 message: "No pending registration found. Please sign up again.",
             });
+        }
 
         if (pending.otpExpires < new Date()) {
             await PendingUser.deleteOne({ email });
@@ -190,6 +198,16 @@ export const verifyOtp = async(req, res) => {
         });
 
     } catch (error) {
+        if (error?.code === 11000) {
+            const email = req.body.email?.toLowerCase().trim();
+            if (email) {
+                await PendingUser.deleteOne({ email }).catch(() => {});
+            }
+            return res.status(400).json({
+                message: "Registration has already been completed. Please sign in.",
+                alreadyRegistered: true,
+            });
+        }
         console.error("Verify OTP error:", error);
         res.status(500).json({ message: "Verification failed" });
     }

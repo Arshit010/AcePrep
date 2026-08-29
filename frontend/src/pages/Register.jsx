@@ -33,27 +33,42 @@ function getPasswordStrength(pw) {
 
 const OTP_LENGTH = 6;
 const OTP_RESEND_COOLDOWN = 30;
+const PENDING_EMAIL_STORAGE_KEY = "aceprep_pending_reg_email";
 
 export default function Register() {
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
 
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    try {
+      return sessionStorage.getItem(PENDING_EMAIL_STORAGE_KEY) || "";
+    } catch {
+      return "";
+    }
+  });
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [otpPhase, setOtpPhase] = useState(false);
+  const [otpPhase, setOtpPhase] = useState(() => {
+    try {
+      return !!sessionStorage.getItem(PENDING_EMAIL_STORAGE_KEY);
+    } catch {
+      return false;
+    }
+  });
   const [otpDigits, setOtpDigits] = useState(Array(OTP_LENGTH).fill(""));
   const [verifying, setVerifying] = useState(false);
+  const [verified, setVerified] = useState(false);
   const [resending, setResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const otpInputRefs = useRef([]);
   const verifyingRef = useRef(false);
+  const isVerifiedRef = useRef(false);
   const strength = useMemo(() => getPasswordStrength(password), [password]);
 
   useEffect(() => {
@@ -69,6 +84,7 @@ export default function Register() {
   };
 
   const handleOtpChange = useCallback((index, value) => {
+    if (isVerifiedRef.current) return;
     const digit = value.replace(/\D/g, "").slice(-1);
     setOtpDigits((prev) => {
       const next = [...prev];
@@ -81,6 +97,7 @@ export default function Register() {
   }, []);
 
   const handleOtpKeyDown = useCallback((index, e) => {
+    if (isVerifiedRef.current) return;
     if (e.key === "Backspace") {
       if (!otpDigits[index] && index > 0) {
         focusOtpInput(index - 1);
@@ -99,6 +116,7 @@ export default function Register() {
   }, [otpDigits]);
 
   const handleOtpPaste = useCallback((e) => {
+    if (isVerifiedRef.current) return;
     e.preventDefault();
     const pasted = (e.clipboardData.getData("text") || "").replace(/\D/g, "").slice(0, OTP_LENGTH);
     if (!pasted) return;
@@ -119,7 +137,8 @@ export default function Register() {
     setError("");
     setSuccess("");
 
-    if (!name || !email || !password) {
+    const trimmedEmail = email.toLowerCase().trim();
+    if (!name.trim() || !trimmedEmail || !password) {
       setError("Fill all fields");
       return;
     }
@@ -127,10 +146,14 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const { data } = await api.post("/auth/register", { name, email, password });
+      const { data } = await api.post("/auth/register", { name: name.trim(), email: trimmedEmail, password });
       if (data.requiresOtp) {
+        try {
+          sessionStorage.setItem(PENDING_EMAIL_STORAGE_KEY, trimmedEmail);
+        } catch {}
+        setEmail(trimmedEmail);
         setOtpPhase(true);
-        setSuccess("Verification code sent to " + email);
+        setSuccess("Verification code sent to " + trimmedEmail);
         setResendCooldown(OTP_RESEND_COOLDOWN);
         setTimeout(() => focusOtpInput(0), 100);
       }
@@ -143,7 +166,7 @@ export default function Register() {
 
   const handleVerifyOtp = async (e) => {
     if (e) e.preventDefault();
-    if (verifyingRef.current) return;
+    if (isVerifiedRef.current || verifyingRef.current) return;
     const otp = otpDigits.join("");
     if (otp.length < OTP_LENGTH) {
       setError("Please enter the complete 6-digit code");
@@ -155,17 +178,36 @@ export default function Register() {
     verifyingRef.current = true;
     setVerifying(true);
 
+    const trimmedEmail = email.toLowerCase().trim();
+
     try {
-      await api.post("/auth/verify-otp", { email, otp });
+      await api.post("/auth/verify-otp", { email: trimmedEmail, otp });
+      isVerifiedRef.current = true;
+      setVerified(true);
+      try {
+        sessionStorage.removeItem(PENDING_EMAIL_STORAGE_KEY);
+      } catch {}
       await refreshUser();
       setSuccess("Email verified! Redirecting to dashboard...");
       setTimeout(() => {
         navigate("/dashboard", { replace: true });
-      }, 1500);
+      }, 1200);
     } catch (err) {
-      setError(err?.response?.data?.message || "Verification failed");
-      setOtpDigits(Array(OTP_LENGTH).fill(""));
-      setTimeout(() => focusOtpInput(0), 100);
+      if (isVerifiedRef.current) return;
+      const isAlreadyRegistered = err?.response?.data?.alreadyRegistered;
+      if (isAlreadyRegistered) {
+        setError("Account is already verified. Redirecting to login...");
+        try {
+          sessionStorage.removeItem(PENDING_EMAIL_STORAGE_KEY);
+        } catch {}
+        setTimeout(() => {
+          navigate("/login", { replace: true });
+        }, 1500);
+      } else {
+        setError(err?.response?.data?.message || "Verification failed");
+        setOtpDigits(Array(OTP_LENGTH).fill(""));
+        setTimeout(() => focusOtpInput(0), 100);
+      }
     } finally {
       verifyingRef.current = false;
       setVerifying(false);
@@ -173,17 +215,18 @@ export default function Register() {
   };
 
   useEffect(() => {
-    if (otpPhase && otpDigits.every((d) => d !== "")) {
+    if (otpPhase && !isVerifiedRef.current && !verifyingRef.current && otpDigits.every((d) => d !== "")) {
       handleVerifyOtp();
     }
   }, [otpDigits, otpPhase]);
 
   const handleResendOtp = async () => {
-    if (resendCooldown > 0 || resending) return;
+    if (resendCooldown > 0 || resending || verified || isVerifiedRef.current) return;
     setError("");
     setResending(true);
+    const trimmedEmail = email.toLowerCase().trim();
     try {
-      await api.post("/auth/resend-otp", { email });
+      await api.post("/auth/resend-otp", { email: trimmedEmail });
       setSuccess("New verification code sent!");
       setResendCooldown(OTP_RESEND_COOLDOWN);
       setOtpDigits(Array(OTP_LENGTH).fill(""));
@@ -196,6 +239,10 @@ export default function Register() {
   };
 
   const handleBackToForm = () => {
+    if (verified || isVerifiedRef.current) return;
+    try {
+      sessionStorage.removeItem(PENDING_EMAIL_STORAGE_KEY);
+    } catch {}
     setOtpPhase(false);
     setOtpDigits(Array(OTP_LENGTH).fill(""));
     setError("");
@@ -259,17 +306,23 @@ export default function Register() {
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    disabled={verifying}
+                    disabled={verifying || verified}
                   />
                 ))}
               </div>
 
-              <button type="submit" className="auth-prod-btn" disabled={verifying || otpDigits.some((d) => !d)}>
+              <button
+                type="submit"
+                className="auth-prod-btn"
+                disabled={verifying || verified || otpDigits.some((d) => !d)}
+              >
                 {verifying ? (
                   <span className="auth-btn-loading">
                     <span className="auth-btn-spinner" />
                     Verifying...
                   </span>
+                ) : verified ? (
+                  "Verified! Redirecting..."
                 ) : (
                   "Verify & Continue"
                 )}
@@ -283,7 +336,7 @@ export default function Register() {
                   type="button"
                   className="otp-resend-btn"
                   onClick={handleResendOtp}
-                  disabled={resendCooldown > 0 || resending}
+                  disabled={resendCooldown > 0 || resending || verifying || verified}
                 >
                   {resending
                     ? "Sending..."
@@ -292,7 +345,12 @@ export default function Register() {
                     : "Resend Code"}
                 </button>
 
-                <button type="button" className="otp-back-btn" onClick={handleBackToForm}>
+                <button
+                  type="button"
+                  className="otp-back-btn"
+                  onClick={handleBackToForm}
+                  disabled={verifying || verified}
+                >
                   <span className="material-symbols-outlined">arrow_back</span>
                   Change email
                 </button>
@@ -300,7 +358,11 @@ export default function Register() {
             </form>
 
             <div className="auth-prod-footer">
-              <button className="auth-prod-back" onClick={() => navigate("/")}>
+              <button
+                className="auth-prod-back"
+                onClick={() => navigate("/")}
+                disabled={verifying || verified}
+              >
                 <span className="material-symbols-outlined">arrow_back</span>
                 Back to Home
               </button>
