@@ -29,6 +29,12 @@ export default function VideoInterview() {
   const integritySyncInFlightRef = useRef(false);
   const startupGuardUntilRef = useRef(Date.now() + 8000);
   const nextQuestionActionRef = useRef(null);
+  const isRecordingIntentRef = useRef(false);
+  const recognitionSessionIdRef = useRef(0);
+  const recognitionRestartTimerRef = useRef(null);
+  const restartCountRef = useRef(0);
+  const interimTranscriptRef = useRef("");
+  const submittingRef = useRef(false);
 
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -396,59 +402,8 @@ export default function VideoInterview() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       setRecognitionSupported(false);
-      setRecognitionStatus("Speech recognition is not supported in this browser.");
-      return;
+      setRecognitionStatus("Speech recognition is not supported in this browser. You can type your answers below.");
     }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      setRecognitionStatus("Listening to your verbal answer...");
-      lastSpeechRef.current = Date.now();
-
-    };
-
-    recognition.onresult = (event) => {
-      let finalChunk = "";
-      let interimChunk = "";
-
-      for (let index = event.resultIndex; index < event.results.length; index += 1) {
-        const transcript = event.results[index][0]?.transcript || "";
-        if (event.results[index].isFinal) {
-          finalChunk += `${transcript} `;
-        } else {
-          interimChunk += transcript;
-        }
-      }
-
-      if (finalChunk) {
-        setFinalTranscript((previous) => `${previous} ${finalChunk}`.trim());
-      }
-
-      setInterimTranscript(interimChunk.trim());
-      lastSpeechRef.current = Date.now();
-    };
-
-    recognition.onerror = (event) => {
-      setRecognitionStatus(`Speech recognition error: ${event.error}`);
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-      setInterimTranscript("");
-      setRecognitionStatus((previous) =>
-        previous.startsWith("Speech recognition error")
-          ? previous
-          : "Microphone paused. Start again when you are ready."
-      );
-    };
-
-    recognitionRef.current = recognition;
   }, []);
 
   useEffect(() => {
@@ -666,6 +621,12 @@ export default function VideoInterview() {
   }, [interview, currentQuestion, selectedVoiceURI, current, id]);
 
   const stopMediaAndRecognition = () => {
+    isRecordingIntentRef.current = false;
+    recognitionSessionIdRef.current += 1;
+    if (recognitionRestartTimerRef.current) {
+      window.clearTimeout(recognitionRestartTimerRef.current);
+      recognitionRestartTimerRef.current = null;
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -673,17 +634,18 @@ export default function VideoInterview() {
     if (videoRef.current) {
       try {
         videoRef.current.pause();
-      } catch (_) {
-
-      }
+      } catch (_) {}
       videoRef.current.srcObject = null;
     }
     if (recognitionRef.current) {
-      recognitionRef.current.onend = null;
-      recognitionRef.current.stop();
-      if (typeof recognitionRef.current.abort === "function") {
+      try {
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
         recognitionRef.current.abort();
-      }
+      } catch (_) {}
+      recognitionRef.current = null;
     }
     if (speakTimerRef.current) {
       window.clearTimeout(speakTimerRef.current);
@@ -693,6 +655,7 @@ export default function VideoInterview() {
       window.clearTimeout(thinkingSpeechTimerRef.current);
       thinkingSpeechTimerRef.current = null;
     }
+    speechOrchestratorRef.current?.cancel();
     activeUtteranceRef.current = null;
     pendingSpeechRef.current = null;
     window.speechSynthesis?.cancel();
@@ -757,6 +720,154 @@ export default function VideoInterview() {
     }
   };
 
+  const startRecognitionSession = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setRecognitionSupported(false);
+      setRecognitionStatus("Speech recognition is not supported in this browser.");
+      return;
+    }
+
+    if (recognitionRestartTimerRef.current) {
+      window.clearTimeout(recognitionRestartTimerRef.current);
+      recognitionRestartTimerRef.current = null;
+    }
+
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.abort();
+      } catch (_) {}
+      recognitionRef.current = null;
+    }
+
+    const sessionId = recognitionSessionIdRef.current;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+    recognitionRef.current = recognition;
+
+    recognition.onstart = () => {
+      if (sessionId !== recognitionSessionIdRef.current) return;
+      restartCountRef.current = 0;
+      setIsListening(true);
+      setRecognitionStatus("Listening to your verbal answer...");
+      lastSpeechRef.current = Date.now();
+    };
+
+    recognition.onresult = (event) => {
+      if (sessionId !== recognitionSessionIdRef.current) return;
+
+      let finalChunk = "";
+      let interimChunk = "";
+
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const transcript = event.results[index][0]?.transcript || "";
+        if (event.results[index].isFinal) {
+          finalChunk += `${transcript} `;
+        } else {
+          interimChunk += transcript;
+        }
+      }
+
+      if (finalChunk) {
+        setFinalTranscript((previous) => {
+          const updated = `${previous} ${finalChunk}`.trim();
+          if (id) {
+            try {
+              sessionStorage.setItem(`aceprep:video-interview:${id}:q:${current}:draft`, updated);
+            } catch (_) {}
+          }
+          return updated;
+        });
+      }
+
+      const trimmedInterim = interimChunk.trim();
+      interimTranscriptRef.current = trimmedInterim;
+      setInterimTranscript(trimmedInterim);
+      lastSpeechRef.current = Date.now();
+    };
+
+    recognition.onerror = (event) => {
+      if (sessionId !== recognitionSessionIdRef.current) return;
+
+      const error = event.error;
+
+      // Recoverable mobile conditions: no-speech, aborted
+      if (error === "no-speech" || error === "aborted") {
+        return;
+      }
+
+      // Unrecoverable permission error
+      if (error === "not-allowed" || error === "service-not-allowed") {
+        isRecordingIntentRef.current = false;
+        setIsListening(false);
+        setRecognitionStatus("Microphone access was denied. Please allow microphone permissions or use Text Mode.");
+        return;
+      }
+
+      if (import.meta.env?.DEV) {
+        console.warn("[SpeechRecognition] Error encountered:", error);
+      }
+    };
+
+    recognition.onend = () => {
+      if (sessionId !== recognitionSessionIdRef.current) return;
+
+      // If candidate is actively recording (mobile browser ended the chunk automatically)
+      if (isRecordingIntentRef.current && !submittingRef.current && !interviewClosedRef.current) {
+        if (interimTranscriptRef.current) {
+          setFinalTranscript((previous) => {
+            const updated = `${previous} ${interimTranscriptRef.current}`.trim();
+            if (id) {
+              try {
+                sessionStorage.setItem(`aceprep:video-interview:${id}:q:${current}:draft`, updated);
+              } catch (_) {}
+            }
+            return updated;
+          });
+          interimTranscriptRef.current = "";
+          setInterimTranscript("");
+        }
+
+        restartCountRef.current += 1;
+        const delay = restartCountRef.current > 10 ? 500 : 50;
+
+        recognitionRestartTimerRef.current = window.setTimeout(() => {
+          if (sessionId === recognitionSessionIdRef.current && isRecordingIntentRef.current) {
+            startRecognitionSession();
+          }
+        }, delay);
+
+        return;
+      }
+
+      setIsListening(false);
+      interimTranscriptRef.current = "";
+      setInterimTranscript("");
+      setRecognitionStatus("Microphone paused. Start again when you are ready.");
+    };
+
+    try {
+      recognition.start();
+    } catch (err) {
+      if (import.meta.env?.DEV) {
+        console.warn("[SpeechRecognition] Failed to start:", err);
+      }
+      if (isRecordingIntentRef.current) {
+        recognitionRestartTimerRef.current = window.setTimeout(() => {
+          if (sessionId === recognitionSessionIdRef.current && isRecordingIntentRef.current) {
+            startRecognitionSession();
+          }
+        }, 150);
+      }
+    }
+  };
+
   const startListening = () => {
     if (pendingSpeechRef.current) {
       speechPrimedRef.current = true;
@@ -767,20 +878,58 @@ export default function VideoInterview() {
       speakText(pending.text, pending.options);
     }
 
-    if (!recognitionRef.current || !recognitionSupported || isListening || submitting) return;
-    recognitionRef.current.start();
+    if (!recognitionSupported || submitting || isListening) return;
+
+    isRecordingIntentRef.current = true;
+    recognitionSessionIdRef.current += 1;
+    restartCountRef.current = 0;
+    startRecognitionSession();
   };
 
   const stopListening = () => {
-    if (!recognitionRef.current || !isListening) return;
-    recognitionRef.current.stop();
-    setRecognitionStatus("Finalizing your spoken answer...");
+    isRecordingIntentRef.current = false;
+    recognitionSessionIdRef.current += 1;
+
+    if (recognitionRestartTimerRef.current) {
+      window.clearTimeout(recognitionRestartTimerRef.current);
+      recognitionRestartTimerRef.current = null;
+    }
+
+    if (interimTranscriptRef.current) {
+      setFinalTranscript((previous) => {
+        const updated = `${previous} ${interimTranscriptRef.current}`.trim();
+        if (id) {
+          try {
+            sessionStorage.setItem(`aceprep:video-interview:${id}:q:${current}:draft`, updated);
+          } catch (_) {}
+        }
+        return updated;
+      });
+      interimTranscriptRef.current = "";
+      setInterimTranscript("");
+    }
+
+    setIsListening(false);
+
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.abort();
+      } catch (_) {}
+      recognitionRef.current = null;
+    }
+
+    setRecognitionStatus("Microphone paused. Start again when you are ready.");
   };
 
   const clearTranscript = () => {
-    if (isListening) recognitionRef.current?.stop();
+    if (isListening) stopListening();
     setFinalTranscript("");
     setInterimTranscript("");
+    interimTranscriptRef.current = "";
     if (id) {
       sessionStorage.removeItem(`aceprep:video-interview:${id}:q:${current}:draft`);
     }
@@ -792,6 +941,7 @@ export default function VideoInterview() {
     if ((!transcript && !isAutoSubmit) || submitting) return;
 
     if (isListening) stopListening();
+    submittingRef.current = true;
     setSubmitting(true);
 
     try {
@@ -862,6 +1012,18 @@ export default function VideoInterview() {
         speechOrchestratorRef.current?.cancel();
         activeUtteranceRef.current = null;
         setIsSpeaking(false);
+        isRecordingIntentRef.current = false;
+        recognitionSessionIdRef.current += 1;
+        if (recognitionRestartTimerRef.current) {
+          window.clearTimeout(recognitionRestartTimerRef.current);
+          recognitionRestartTimerRef.current = null;
+        }
+        try {
+          recognitionRef.current?.abort();
+        } catch (_) {}
+        recognitionRef.current = null;
+        setIsListening(false);
+        interimTranscriptRef.current = "";
 
         if (id) {
           sessionStorage.removeItem(`aceprep:video-interview:${id}:q:${questionIndexSubmitted}:draft`);
@@ -905,6 +1067,7 @@ export default function VideoInterview() {
       console.error(error);
       setWarningMessage(error?.response?.data?.message || "Failed to submit answer");
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   }
