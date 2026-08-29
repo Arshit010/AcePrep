@@ -2,6 +2,7 @@ import Interview from "../models/Interview.js";
 import { generateInterviewQuestions } from "../services/ai.service.js";
 import { evaluateAnswer } from "../services/evaluate.service.js";
 import { generateFinalReport } from "../services/report.service.js";
+import { synthesizeSpeech } from "../services/elevenlabs.service.js";
 
 const getUserId = (req) =>
     req.user?._id?.toString() || req.user?.id;
@@ -479,3 +480,43 @@ export const deleteInterview = async(req, res) => {
         res.status(500).json({ message: "Failed to delete interview" });
     }
 };
+
+export const speakTextController = async(req, res) => {
+    try {
+        const text = req.body.text?.trim();
+
+        if (!text) {
+            return res.status(400).json({ message: "Text is required" });
+        }
+
+        if (text.length > 2000) {
+            return res.status(400).json({ message: "Text exceeds maximum length of 2000 characters" });
+        }
+
+        const { audioBuffer, contentType, cached } = await synthesizeSpeech(text);
+
+        res.set({
+            "Content-Type": contentType || "audio/mpeg",
+            "Content-Length": audioBuffer.length,
+            "Cache-Control": "public, max-age=86400",
+            "X-TTS-Cached": cached ? "HIT" : "MISS",
+        });
+
+        return res.status(200).send(audioBuffer);
+
+    } catch (error) {
+        if (error.code === "ELEVENLABS_NOT_CONFIGURED") {
+            return res.status(503).json({
+                message: "Neural TTS service not configured",
+                fallback: true,
+            });
+        }
+
+        console.error("Speak text error:", error?.message || error);
+        return res.status(error.status || 500).json({
+            message: error?.message || "Failed to generate speech",
+            fallback: true,
+        });
+    }
+};
+

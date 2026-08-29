@@ -46,6 +46,18 @@ export default function StartVideoInterview() {
       return;
     }
 
+    if (typeof window !== "undefined") {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          if (ctx.state === "suspended") {
+            ctx.resume().catch(() => {});
+          }
+        }
+      } catch (_) {}
+    }
+
     setLoading(true);
     setError("");
 

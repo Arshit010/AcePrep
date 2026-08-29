@@ -9,7 +9,8 @@ import {
     abandonInterview,
     getInterviewResult,
     getInterviewHistory,
-    deleteInterview
+    deleteInterview,
+    speakTextController
 } from "../controllers/interview.controller.js";
 import {
     startInterviewLimiter,
@@ -62,6 +63,7 @@ router.post(
 
 router.post("/save-integrity", protect, saveIntegrity);
 router.post("/abandon", protect, abandonInterview);
+router.post("/speak", protect, speakTextController);
 
 router.get("/result/:id", protect, getInterviewResult);
 router.get("/", protect, getInterviewHistory);

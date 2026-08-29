@@ -2,15 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
 import { VideoInterviewSkeleton } from "../components/Skeletons";
-
-function selectDefaultVoice(voices = []) {
-  return (
-    voices.find((voice) => voice.default) ||
-    voices.find((voice) => (voice.lang || "").toLowerCase().startsWith("en")) ||
-    voices[0] ||
-    null
-  );
-}
+import { selectBestVoice, getVoiceTier, SpeechOrchestrator } from "../utils/speechEngine";
 
 export default function VideoInterview() {
   const { id } = useParams();
@@ -24,6 +16,11 @@ export default function VideoInterview() {
   const manualVoiceSelectionRef = useRef(false);
   const pendingSpeechRef = useRef(null);
   const speechPrimedRef = useRef(false);
+  const speechOrchestratorRef = useRef(null);
+  if (!speechOrchestratorRef.current) {
+    speechOrchestratorRef.current = new SpeechOrchestrator();
+  }
+  const lockedVoiceRef = useRef(null);
   const lastSpeechRef = useRef(Date.now());
   const allowPageExitRef = useRef(false);
   const quittingRef = useRef(false);
@@ -62,6 +59,7 @@ export default function VideoInterview() {
   const [voicePlaybackReady, setVoicePlaybackReady] = useState(false);
   const [voiceNotice, setVoiceNotice] = useState("Preparing interviewer voice...");
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [audioAutoplayBlocked, setAudioAutoplayBlocked] = useState(false);
   const [screenShieldActive, setScreenShieldActive] = useState(false);
 
   const currentQuestion = interview?.questions?.[current] || "";
@@ -454,15 +452,36 @@ export default function VideoInterview() {
   }, []);
 
   useEffect(() => {
-    if (!("speechSynthesis" in window)) return;
+    if (!("speechSynthesis" in window)) return undefined;
 
     const updateVoices = () => {
       const availableVoices = window.speechSynthesis.getVoices();
       setVoices(availableVoices);
 
-      if (!manualVoiceSelectionRef.current) {
-        const defaultVoice = selectDefaultVoice(availableVoices);
-        if (defaultVoice) setSelectedVoiceURI(defaultVoice.voiceURI);
+      if (!manualVoiceSelectionRef.current && availableVoices.length > 0) {
+        const bestVoice = selectBestVoice(availableVoices, "en-US");
+        if (bestVoice) {
+          const currentTier = getVoiceTier(lockedVoiceRef.current);
+          const newTier = getVoiceTier(bestVoice);
+          // Lock if not set, or dynamically upgrade if a higher quality tier voice becomes available
+          if (!lockedVoiceRef.current || newTier > currentTier) {
+            lockedVoiceRef.current = bestVoice;
+            setSelectedVoiceURI(bestVoice.voiceURI);
+          }
+        }
+      }
+
+      if (import.meta.env?.DEV && availableVoices.length > 0) {
+        const englishVoices = availableVoices.filter(v => (v.lang || "").toLowerCase().startsWith("en"));
+        console.log(`[TTS Diagnostics] Total voices: ${availableVoices.length}, English voices: ${englishVoices.length}`);
+        console.table?.(englishVoices.map(v => ({
+          name: v.name,
+          lang: v.lang,
+          localService: v.localService,
+          default: v.default,
+          tier: getVoiceTier(v),
+        })));
+        console.log(`[TTS Diagnostics] Selected Session Voice: "${lockedVoiceRef.current?.name}" (${lockedVoiceRef.current?.lang})`);
       }
     };
 
@@ -473,7 +492,7 @@ export default function VideoInterview() {
     return () => {
       window.speechSynthesis.onvoiceschanged = null;
     };
-  }, [preferredGender]);
+  }, []);
 
   useEffect(() => {
     if (!("speechSynthesis" in window)) {
@@ -482,62 +501,16 @@ export default function VideoInterview() {
     }
 
     const unlockVoice = () => {
-      if (speechPrimedRef.current) {
-        if (pendingSpeechRef.current) {
-          const pending = pendingSpeechRef.current;
-          pendingSpeechRef.current = null;
-          speakText(pending.text, pending.options);
-        }
-        return;
+      if (!speechPrimedRef.current) {
+        speechPrimedRef.current = true;
+        setVoicePlaybackReady(true);
+        setVoiceNotice("Interviewer voice ready.");
       }
 
       if (pendingSpeechRef.current) {
         const pending = pendingSpeechRef.current;
         pendingSpeechRef.current = null;
-        speechPrimedRef.current = true;
-        setVoicePlaybackReady(true);
-        setVoiceNotice("Interviewer voice ready.");
         speakText(pending.text, pending.options);
-        return;
-      }
-
-      const primer = new SpeechSynthesisUtterance(" ");
-      primer.volume = 0;
-      primer.rate = 1;
-      primer.pitch = 1;
-
-      const markReady = () => {
-        if (speechPrimedRef.current) return;
-        speechPrimedRef.current = true;
-        setVoicePlaybackReady(true);
-        setVoiceNotice("Interviewer voice ready.");
-
-        if (pendingSpeechRef.current) {
-          const pending = pendingSpeechRef.current;
-          pendingSpeechRef.current = null;
-          window.setTimeout(() => {
-            speakText(pending.text, pending.options);
-          }, 80);
-        }
-      };
-
-      primer.onstart = markReady;
-      primer.onend = markReady;
-      primer.onerror = () => {
-        setVoiceNotice("If the voice stays silent, click Start Answer once to unlock browser audio.");
-      };
-
-      try {
-        window.speechSynthesis.resume?.();
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(primer);
-        window.setTimeout(() => {
-          if (window.speechSynthesis.speaking || !window.speechSynthesis.paused) {
-            markReady();
-          }
-        }, 180);
-      } catch (_) {
-        setVoiceNotice("If the voice stays silent, click Start Answer once to unlock browser audio.");
       }
     };
 
@@ -626,97 +599,52 @@ export default function VideoInterview() {
   }, [interview, integrityScore, suspiciousEvents, id]);
 
   const speakText = (text, options = {}) => {
-    if (!text || !("speechSynthesis" in window)) return;
+    if (!text) return;
 
-    if (!speechPrimedRef.current) {
-      pendingSpeechRef.current = { text, options };
-      setVoiceNotice("Unlocking interviewer voice...");
-      return;
+    const { delayMs = 0, onEnd, spokenKey, isUserInitiated = false } = options;
+
+    if (isUserInitiated) {
+      setAudioAutoplayBlocked(false);
+      speechPrimedRef.current = true;
     }
 
-    const { interrupt = true, delayMs = 0, onEnd } = options;
-
-    const voice = selectedVoice || selectDefaultVoice(voices);
-    const cleanedText = text.replace(/\s+/g, " ").trim();
-    const utterance = new SpeechSynthesisUtterance(cleanedText);
-
-    if (voice) {
-      utterance.voice = voice;
-      utterance.lang = voice.lang;
-    }
-
-    utterance.rate = 1.14;
-    utterance.pitch = 0.99;
-    utterance.volume = 1;
+    const voice = selectedVoice || lockedVoiceRef.current || selectBestVoice(voices, "en-US");
 
     if (speakTimerRef.current) {
       window.clearTimeout(speakTimerRef.current);
     }
 
-    if (interrupt) {
-      window.speechSynthesis.cancel();
-    }
-
-    let keepAliveInterval = null;
-
-    const cleanUpKeepAlive = () => {
-      if (keepAliveInterval) {
-        window.clearInterval(keepAliveInterval);
-        keepAliveInterval = null;
-      }
-    };
-
-    utterance.onend = () => {
-      cleanUpKeepAlive();
-      setIsSpeaking(false);
-      if (activeUtteranceRef.current === utterance) {
-        activeUtteranceRef.current = null;
-      }
-      if (typeof onEnd === "function") {
-        onEnd();
-      }
-    };
-
-    utterance.onerror = (event) => {
-      cleanUpKeepAlive();
-      setIsSpeaking(false);
-      if (activeUtteranceRef.current === utterance) {
-        activeUtteranceRef.current = null;
-      }
-
-      if (options.spokenKey && event.error !== "interrupted" && event.error !== "canceled") {
-        try {
-          sessionStorage.removeItem(options.spokenKey);
-        } catch (_) {}
-      }
-
-      if (
-        event.error === "interrupted" ||
-        event.error === "canceled" ||
-        event.error === "not-allowed"
-      ) {
-        return;
-      }
-      if (typeof onEnd === "function") {
-        onEnd();
-      }
-    };
-
     speakTimerRef.current = window.setTimeout(() => {
-      activeUtteranceRef.current = utterance;
-      setIsSpeaking(true);
-
-      window.speechSynthesis.resume?.();
-      window.speechSynthesis.speak(utterance);
-
-      keepAliveInterval = window.setInterval(() => {
-        if (!window.speechSynthesis.speaking) {
-          cleanUpKeepAlive();
-          return;
-        }
-        window.speechSynthesis.pause();
-        window.speechSynthesis.resume();
-      }, 10000);
+      speechOrchestratorRef.current?.speak(text, {
+        voice,
+        spokenKey,
+        onStart: () => {
+          setIsSpeaking(true);
+          setAudioAutoplayBlocked(false);
+          speechPrimedRef.current = true;
+          if (spokenKey) {
+            try {
+              sessionStorage.setItem(spokenKey, "true");
+            } catch (_) {}
+          }
+        },
+        onEnd: () => {
+          setIsSpeaking(false);
+          if (typeof onEnd === "function") onEnd();
+        },
+        onError: () => {
+          setIsSpeaking(false);
+        },
+        onAutoplayBlocked: () => {
+          setAudioAutoplayBlocked(true);
+          setIsSpeaking(false);
+          if (spokenKey) {
+            try {
+              sessionStorage.removeItem(spokenKey);
+            } catch (_) {}
+          }
+        },
+      });
     }, delayMs);
   };
 
@@ -727,15 +655,12 @@ export default function VideoInterview() {
     const isAlreadySpoken = sessionStorage.getItem(spokenKey) === "true";
 
     if (isAlreadySpoken) {
-
       return;
     }
 
-    sessionStorage.setItem(spokenKey, "true");
-
     const timer = window.setTimeout(() => {
       speakText(getQuestionPrompt(current), { spokenKey });
-    }, current === 0 ? 40 : 20);
+    }, current === 0 ? 60 : 30);
 
     return () => window.clearTimeout(timer);
   }, [interview, currentQuestion, selectedVoiceURI, current, id]);
@@ -934,10 +859,8 @@ export default function VideoInterview() {
       const moveToNextQuestion = () => {
         nextQuestionActionRef.current = null;
         setIsPendingFeedback(false);
-        if (activeUtteranceRef.current) {
-          window.speechSynthesis?.cancel();
-          activeUtteranceRef.current = null;
-        }
+        speechOrchestratorRef.current?.cancel();
+        activeUtteranceRef.current = null;
         setIsSpeaking(false);
 
         if (id) {
@@ -1029,7 +952,9 @@ export default function VideoInterview() {
 
   const replayCurrentQuestion = () => {
     if (!currentQuestion) return;
-    speakText(currentQuestion);
+    setAudioAutoplayBlocked(false);
+    speechPrimedRef.current = true;
+    speakText(currentQuestion, { isUserInitiated: true });
   };
 
   return (
@@ -1183,20 +1108,51 @@ export default function VideoInterview() {
               </div>
             </div>
           </div>
-        </aside><main className="video-right-studio"><div className="active-question-card">
+        </aside><main className="video-right-studio">          <div className="active-question-card">
             <div className="question-card-top">
               <span className="question-seq-pill">Question {current + 1} of {interview.questions.length}</span>
-              <button
-                type="button"
-                className="replay-question-btn"
-                onClick={replayCurrentQuestion}
-                disabled={isSpeaking || submitting}
-                title="Hear the question spoken again"
-              >
-                <span className="material-symbols-outlined">volume_up</span>
-                Replay Audio
-              </button>
+              <div className="question-card-actions" style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                {audioAutoplayBlocked && !isSpeaking && (
+                  <button
+                    type="button"
+                    className="start-audio-btn-pulsing"
+                    onClick={() => {
+                      setAudioAutoplayBlocked(false);
+                      speechPrimedRef.current = true;
+                      speakText(getQuestionPrompt(current), { isUserInitiated: true });
+                    }}
+                    title="Click to hear the question"
+                  >
+                    <span className="material-symbols-outlined">play_arrow</span>
+                    Start Audio
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="replay-question-btn"
+                  onClick={replayCurrentQuestion}
+                  disabled={isSpeaking || submitting}
+                  title="Hear the question spoken again"
+                >
+                  <span className="material-symbols-outlined">volume_up</span>
+                  Replay Audio
+                </button>
+              </div>
             </div>
+
+            {audioAutoplayBlocked && (
+              <div
+                className="safari-audio-alert"
+                onClick={() => {
+                  setAudioAutoplayBlocked(false);
+                  speechPrimedRef.current = true;
+                  speakText(getQuestionPrompt(current), { isUserInitiated: true });
+                }}
+              >
+                <span className="material-symbols-outlined">volume_off</span>
+                <span>Click here or "Start Audio" to hear the AI interviewer</span>
+              </div>
+            )}
 
             <h2 className="active-question-text">{currentQuestion}</h2>
             <p className="active-question-hint">
