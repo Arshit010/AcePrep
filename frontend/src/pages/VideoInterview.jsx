@@ -34,7 +34,19 @@ export default function VideoInterview() {
   const recognitionRestartTimerRef = useRef(null);
   const restartCountRef = useRef(0);
   const interimTranscriptRef = useRef("");
+  const finalTranscriptRef = useRef("");
   const submittingRef = useRef(false);
+  const recognitionDiagnosticsRef = useRef({
+    started: false,
+    audioStarted: false,
+    soundStarted: false,
+    speechStarted: false,
+    resultReceived: false,
+    finalResultReceived: false,
+    lastError: null,
+    ended: false,
+    consecutiveEmptyEnds: 0
+  });
 
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -211,6 +223,7 @@ export default function VideoInterview() {
 
         const savedDraft = sessionStorage.getItem(`aceprep:video-interview:${id}:q:${nextIndex}:draft`);
         if (savedDraft) {
+          finalTranscriptRef.current = savedDraft;
           setFinalTranscript(savedDraft);
         }
 
@@ -720,11 +733,28 @@ export default function VideoInterview() {
     }
   };
 
+  const appendFinalTranscript = (newChunk) => {
+    const cleanChunk = (newChunk || "").trim();
+    if (!cleanChunk) return;
+
+    const prev = (finalTranscriptRef.current || "").trim();
+    const next = prev ? `${prev} ${cleanChunk}` : cleanChunk;
+    finalTranscriptRef.current = next;
+    setFinalTranscript(next);
+
+    if (id) {
+      const draftKey = `aceprep:video-interview:${id}:q:${current}:draft`;
+      try {
+        sessionStorage.setItem(draftKey, next);
+      } catch (_) {}
+    }
+  };
+
   const startRecognitionSession = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       setRecognitionSupported(false);
-      setRecognitionStatus("Speech recognition is not supported in this browser.");
+      setRecognitionStatus("Speech recognition is not supported in this browser. You can type your answers below.");
       return;
     }
 
@@ -736,7 +766,13 @@ export default function VideoInterview() {
     if (recognitionRef.current) {
       try {
         recognitionRef.current.onstart = null;
+        recognitionRef.current.onaudiostart = null;
+        recognitionRef.current.onsoundstart = null;
+        recognitionRef.current.onspeechstart = null;
         recognitionRef.current.onresult = null;
+        recognitionRef.current.onspeechend = null;
+        recognitionRef.current.onsoundend = null;
+        recognitionRef.current.onaudioend = null;
         recognitionRef.current.onerror = null;
         recognitionRef.current.onend = null;
         recognitionRef.current.abort();
@@ -745,50 +781,64 @@ export default function VideoInterview() {
     }
 
     const sessionId = recognitionSessionIdRef.current;
+    let sessionFinalizedIndex = 0;
+
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-US";
-    recognitionRef.current = recognition;
 
     recognition.onstart = () => {
       if (sessionId !== recognitionSessionIdRef.current) return;
+      recognitionDiagnosticsRef.current.started = true;
       restartCountRef.current = 0;
       setIsListening(true);
       setRecognitionStatus("Listening to your verbal answer...");
       lastSpeechRef.current = Date.now();
     };
 
+    recognition.onaudiostart = () => {
+      if (sessionId !== recognitionSessionIdRef.current) return;
+      recognitionDiagnosticsRef.current.audioStarted = true;
+    };
+
+    recognition.onsoundstart = () => {
+      if (sessionId !== recognitionSessionIdRef.current) return;
+      recognitionDiagnosticsRef.current.soundStarted = true;
+    };
+
+    recognition.onspeechstart = () => {
+      if (sessionId !== recognitionSessionIdRef.current) return;
+      recognitionDiagnosticsRef.current.speechStarted = true;
+    };
+
     recognition.onresult = (event) => {
       if (sessionId !== recognitionSessionIdRef.current) return;
+      recognitionDiagnosticsRef.current.resultReceived = true;
+      recognitionDiagnosticsRef.current.consecutiveEmptyEnds = 0;
 
-      let finalChunk = "";
-      let interimChunk = "";
+      let interim = "";
 
-      for (let index = event.resultIndex; index < event.results.length; index += 1) {
-        const transcript = event.results[index][0]?.transcript || "";
-        if (event.results[index].isFinal) {
-          finalChunk += `${transcript} `;
+      for (let i = 0; i < event.results.length; i++) {
+        const item = event.results[i];
+        const text = (item[0]?.transcript || "").trim();
+
+        if (item.isFinal) {
+          if (i >= sessionFinalizedIndex) {
+            if (text) {
+              appendFinalTranscript(text);
+              recognitionDiagnosticsRef.current.finalResultReceived = true;
+            }
+            sessionFinalizedIndex = i + 1;
+          }
         } else {
-          interimChunk += transcript;
+          interim += (interim ? " " : "") + text;
         }
       }
 
-      if (finalChunk) {
-        setFinalTranscript((previous) => {
-          const updated = `${previous} ${finalChunk}`.trim();
-          if (id) {
-            try {
-              sessionStorage.setItem(`aceprep:video-interview:${id}:q:${current}:draft`, updated);
-            } catch (_) {}
-          }
-          return updated;
-        });
-      }
-
-      const trimmedInterim = interimChunk.trim();
-      interimTranscriptRef.current = trimmedInterim;
-      setInterimTranscript(trimmedInterim);
+      const cleanInterim = interim.trim();
+      interimTranscriptRef.current = cleanInterim;
+      setInterimTranscript(cleanInterim);
       lastSpeechRef.current = Date.now();
     };
 
@@ -796,17 +846,18 @@ export default function VideoInterview() {
       if (sessionId !== recognitionSessionIdRef.current) return;
 
       const error = event.error;
+      recognitionDiagnosticsRef.current.lastError = error;
 
-      // Recoverable mobile conditions: no-speech, aborted
+      // Recoverable mobile conditions: no-speech (silence pause), aborted (session reset)
       if (error === "no-speech" || error === "aborted") {
         return;
       }
 
-      // Unrecoverable permission error
-      if (error === "not-allowed" || error === "service-not-allowed") {
+      // Unrecoverable permission or hardware errors
+      if (error === "not-allowed" || error === "service-not-allowed" || error === "audio-capture") {
         isRecordingIntentRef.current = false;
         setIsListening(false);
-        setRecognitionStatus("Microphone access was denied. Please allow microphone permissions or use Text Mode.");
+        setRecognitionStatus("Microphone access was denied or unavailable. Please check microphone permissions or use Text Mode.");
         return;
       }
 
@@ -817,25 +868,23 @@ export default function VideoInterview() {
 
     recognition.onend = () => {
       if (sessionId !== recognitionSessionIdRef.current) return;
+      recognitionDiagnosticsRef.current.ended = true;
 
-      // If candidate is actively recording (mobile browser ended the chunk automatically)
+      // 1. Fold any active unfinalized interim transcript into final transcript
+      if (interimTranscriptRef.current) {
+        appendFinalTranscript(interimTranscriptRef.current);
+        interimTranscriptRef.current = "";
+        setInterimTranscript("");
+      }
+
+      // 2. If candidate is actively recording (mobile browser ended chunk automatically)
       if (isRecordingIntentRef.current && !submittingRef.current && !interviewClosedRef.current) {
-        if (interimTranscriptRef.current) {
-          setFinalTranscript((previous) => {
-            const updated = `${previous} ${interimTranscriptRef.current}`.trim();
-            if (id) {
-              try {
-                sessionStorage.setItem(`aceprep:video-interview:${id}:q:${current}:draft`, updated);
-              } catch (_) {}
-            }
-            return updated;
-          });
-          interimTranscriptRef.current = "";
-          setInterimTranscript("");
+        if (!recognitionDiagnosticsRef.current.resultReceived && !recognitionDiagnosticsRef.current.audioStarted) {
+          recognitionDiagnosticsRef.current.consecutiveEmptyEnds += 1;
         }
 
         restartCountRef.current += 1;
-        const delay = restartCountRef.current > 10 ? 500 : 50;
+        const delay = restartCountRef.current > 10 ? 300 : 40;
 
         recognitionRestartTimerRef.current = window.setTimeout(() => {
           if (sessionId === recognitionSessionIdRef.current && isRecordingIntentRef.current) {
@@ -846,11 +895,15 @@ export default function VideoInterview() {
         return;
       }
 
+      // 3. Candidate genuinely paused / stopped
       setIsListening(false);
       interimTranscriptRef.current = "";
       setInterimTranscript("");
       setRecognitionStatus("Microphone paused. Start again when you are ready.");
     };
+
+    // Attach all handlers to the ref BEFORE calling start()
+    recognitionRef.current = recognition;
 
     try {
       recognition.start();
@@ -863,7 +916,7 @@ export default function VideoInterview() {
           if (sessionId === recognitionSessionIdRef.current && isRecordingIntentRef.current) {
             startRecognitionSession();
           }
-        }, 150);
+        }, 120);
       }
     }
   };
@@ -895,16 +948,9 @@ export default function VideoInterview() {
       recognitionRestartTimerRef.current = null;
     }
 
+    // Fold any active interim transcript before stopping
     if (interimTranscriptRef.current) {
-      setFinalTranscript((previous) => {
-        const updated = `${previous} ${interimTranscriptRef.current}`.trim();
-        if (id) {
-          try {
-            sessionStorage.setItem(`aceprep:video-interview:${id}:q:${current}:draft`, updated);
-          } catch (_) {}
-        }
-        return updated;
-      });
+      appendFinalTranscript(interimTranscriptRef.current);
       interimTranscriptRef.current = "";
       setInterimTranscript("");
     }
@@ -914,7 +960,13 @@ export default function VideoInterview() {
     if (recognitionRef.current) {
       try {
         recognitionRef.current.onstart = null;
+        recognitionRef.current.onaudiostart = null;
+        recognitionRef.current.onsoundstart = null;
+        recognitionRef.current.onspeechstart = null;
         recognitionRef.current.onresult = null;
+        recognitionRef.current.onspeechend = null;
+        recognitionRef.current.onsoundend = null;
+        recognitionRef.current.onaudioend = null;
         recognitionRef.current.onerror = null;
         recognitionRef.current.onend = null;
         recognitionRef.current.abort();
@@ -927,9 +979,10 @@ export default function VideoInterview() {
 
   const clearTranscript = () => {
     if (isListening) stopListening();
+    finalTranscriptRef.current = "";
+    interimTranscriptRef.current = "";
     setFinalTranscript("");
     setInterimTranscript("");
-    interimTranscriptRef.current = "";
     if (id) {
       sessionStorage.removeItem(`aceprep:video-interview:${id}:q:${current}:draft`);
     }
@@ -937,8 +990,8 @@ export default function VideoInterview() {
   };
 
   async function submitAnswer(isAutoSubmit = false) {
-    const transcript = fullTranscript.trim();
-    if ((!transcript && !isAutoSubmit) || submitting) return;
+    const rawAnswer = (finalTranscriptRef.current + " " + interimTranscriptRef.current).trim() || fullTranscript.trim();
+    if ((!rawAnswer && !isAutoSubmit) || submitting) return;
 
     if (isListening) stopListening();
     submittingRef.current = true;
@@ -951,7 +1004,7 @@ export default function VideoInterview() {
         });
       }, 220);
 
-      const safeAnswer = transcript || "No verbal response detected (timeout).";
+      const safeAnswer = rawAnswer || "No verbal response detected (timeout).";
       const { data } = await api.post("/interviews/answer", {
         interviewId: id,
         questionIndex: current,
@@ -1023,6 +1076,7 @@ export default function VideoInterview() {
         } catch (_) {}
         recognitionRef.current = null;
         setIsListening(false);
+        finalTranscriptRef.current = "";
         interimTranscriptRef.current = "";
 
         if (id) {
